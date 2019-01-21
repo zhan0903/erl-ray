@@ -100,6 +100,8 @@ class Worker(object):
         net = ddpg.Actor(self.args)
         net.load_state_dict(individual)
         net.eval()
+        print("11111")
+        logger.debug("test in evaluate")
         logger.debug("individual[w_out.bias]:{}".format(individual["w_out.bias"]))
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
