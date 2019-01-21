@@ -100,11 +100,14 @@ class Worker(object):
         net.load_state_dict(individual)
         net.eval()
 
+        print("1111111")
+
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
         if self.args.is_cuda: state = state.cuda()
         done = False
 
+        print("22222222")
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
             if render and is_render: self.env.render()
@@ -112,6 +115,8 @@ class Worker(object):
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
+
+            print("333333")
 
             next_state, reward, done, info = self.env.step(action.flatten())  # Simulate one step in environment
             next_state = utils.to_tensor(next_state).unsqueeze(0)
