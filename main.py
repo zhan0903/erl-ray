@@ -127,10 +127,9 @@ class Worker(object):
 
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
-            print("come here,self.num_frames,done", self.num_frames, done)
-
+            # print("come here,self.num_frames,done", self.num_frames, done)
         if store_transition: self.num_games += 1
-        return total_reward
+        return key, total_reward
 
 
 class Agent:
@@ -170,21 +169,16 @@ class Agent:
 
         evaluate_ids = [worker.evaluate.remote(key) for key, worker in enumerate(self.workers)]
 
-
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
         print("evluatat_ids:{}".format(evaluate_ids))
         results = ray.get(evaluate_ids)
         print("results:{}".format(results))
         exit(0)
 
-
-        # workers = [Worker.remote(config, policy_params, env_name, noise_id)
-        #    for _ in range(self.args.pop_size)]
-
-        for net in self.pop:
-            fitness = 0.0
-            for eval in range(self.args.num_evals): fitness += self.evaluate(net, is_render=False, is_action_noise=False)
-            all_fitness.append(fitness/self.args.num_evals)
+        # for key in range(self.args.pop_size):
+        #     fitness = 0.0
+        #     for eval in range(self.args.num_evals): fitness += self.evaluate(net, is_render=False, is_action_noise=False)
+        #     all_fitness.append(fitness/self.args.num_evals)
 
         best_train_fitness = max(all_fitness)
         worst_index = all_fitness.index(min(all_fitness))
