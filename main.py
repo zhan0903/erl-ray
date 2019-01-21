@@ -110,7 +110,8 @@ class Worker(object):
         done = False
 
         while not done:
-            print("come here ")
+            print("come here,self.num_frames:",self.num_frames)
+
 
             if store_transition: self.num_frames += 1; # self.gen_frames += 1
             if render and is_render: self.env.render()
