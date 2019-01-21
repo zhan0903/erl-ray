@@ -153,7 +153,7 @@ class Agent:
         # replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
         # experiences_id = ray.put(replay_buffer)
         # thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
-        theta_ids = [ray.put(ddpg.Actor(self.args)) for _ in range(self.args.pop_size)]
+        theta_ids = [ray.put(ddpg.Actor(self.args).state_dict()) for _ in range(self.args.pop_size)]
 
         # theta_ids = ray.put(thetas)
         exit(0)
