@@ -83,6 +83,9 @@ class Worker(object):
         # self.policy.eval()
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
+        self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
+        for i in range(args.pop_size):
+            self.pop[i].eval()
         # Details omitted.
 
     def add_experience(self, state, action, next_state, reward, done):
@@ -95,13 +98,12 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, individual, is_render=False, is_action_noise=False, store_transition=True):
+    def evaluate(self, key, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
-        print("00000000")
-        net = ddpg.Actor(self.args)
+        # print("00000000")
+        # net = ddpg.Actor(self.args)
         # net.load_state_dict(individual)
-        net.eval()
-        print("11111")
+        # net.eval()
         # logger.debug("test in evaluate")
         # print("individual[w_out.bias]:{}".format(individual["w_out.bias"]))
         state = self.env.reset()
@@ -112,7 +114,7 @@ class Worker(object):
         while not done:
             if store_transition: self.num_frames += 1; # self.gen_frames += 1
             if render and is_render: self.env.render()
-            action = net.forward(state)
+            action = self.pop[key].forward(state)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
@@ -125,11 +127,9 @@ class Worker(object):
 
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
-            print("come here,self.num_frames,done",self.num_frames,done)
+            print("come here,self.num_frames,done", self.num_frames, done)
 
         if store_transition: self.num_games += 1
-        print("done!")
-
         return total_reward
 
 
@@ -168,13 +168,12 @@ class Agent:
         # assert len(self.workers) == len(thetas)
         theta_id = ray.put(ddpg.Actor(self.args).state_dict())
 
-        evaluate_ids = [worker.evaluate.remote(2) for worker in self.workers]
+        evaluate_ids = [worker.evaluate.remote(key) for key, worker in enumerate(self.workers)]
 
 
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
         print("evluatat_ids:{}".format(evaluate_ids))
         results = ray.get(evaluate_ids)
-        print("results:")
         print("results:{}".format(results))
         exit(0)
 
