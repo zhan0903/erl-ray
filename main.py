@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(cpus=20)
+@ray.remote(num_cpus=20)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
