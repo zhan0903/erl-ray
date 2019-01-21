@@ -95,6 +95,7 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
+    @ray.remote(num_cpus=20)
     def evaluate(self, individual, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
         net = ddpg.Actor(self.args)
