@@ -99,19 +99,17 @@ class Worker(object):
         total_reward = 0.0
         print("00000000")
         net = ddpg.Actor(self.args)
-        net.load_state_dict(individual)
+        # net.load_state_dict(individual)
         net.eval()
         print("11111")
         # logger.debug("test in evaluate")
-        print("individual[w_out.bias]:{}".format(individual["w_out.bias"]))
+        # print("individual[w_out.bias]:{}".format(individual["w_out.bias"]))
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
         if self.args.is_cuda: state = state.cuda()
         done = False
 
         while not done:
-
-
             if store_transition: self.num_frames += 1; # self.gen_frames += 1
             if render and is_render: self.env.render()
             action = net.forward(state)
@@ -171,7 +169,7 @@ class Agent:
         # assert len(self.workers) == len(thetas)
         theta_id = ray.put(ddpg.Actor(self.args).state_dict())
 
-        evaluate_ids = [worker.evaluate.remote(theta_id) for worker in self.workers]
+        evaluate_ids = [worker.evaluate.remote(2) for worker in self.workers]
 
 
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
