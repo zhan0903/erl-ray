@@ -79,6 +79,7 @@ class Worker(object):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
         # self.policy = ddpg.Actor(args)
         self.env = utils.NormalizedActions(gym.make(env_tag))
+        self.args = args
         # self.policy.eval()
         self.replay_memory = replay_memory(args.buffer_size)
         # Details omitted.
@@ -93,8 +94,9 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, net, is_render, is_action_noise=False, store_transition=True):
+    def evaluate(self, individual, is_render, is_action_noise=False, store_transition=True):
         total_reward = 0.0
+        net = ddpg.Actor(self.args).load_dict(individual)
         net.eval()
 
         state = self.env.reset()
@@ -129,7 +131,7 @@ class Agent:
         self.evolver = utils_ne.SSNE(self.args)
         # experiences = replay_memory()
 
-        self.workders = [Worker.remote(args)
+        self.workers = [Worker.remote(args)
            for _ in range(self.args.pop_size)]
 
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
@@ -150,10 +152,10 @@ class Agent:
         #Evaluate genomes/individuals
         # replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
         # experiences_id = ray.put(replay_buffer)
-        thetas = [ddpg.Actor(self.args) for _ in range(self.args.pop_size)]
+        thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
         theta_ids = ray.put(thetas)
 
-        evaluate_ids = [worker.evaluate.remote(theta_id) for worker, theta_id in zip(self.workders,theta_ids)]
+        evaluate_ids = [worker.evaluate.remote(theta_id) for worker, theta_id in zip(self.workers, theta_ids)]
         results = ray.get(evaluate_ids)
         # print("results:")
         logger.debug("results:{}".format(results))
