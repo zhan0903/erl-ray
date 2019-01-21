@@ -214,7 +214,7 @@ if __name__ == "__main__":
     torch.manual_seed(parameters.seed); np.random.seed(parameters.seed); random.seed(parameters.seed)
 
     #Create Agent
-    ray.init(num_gpus=2,cpus=20)
+    ray.init(num_gpus=2,num_cpus=20)
     agent = Agent(parameters, env)
     print('Running', env_tag, ' State_dim:', parameters.state_dim, ' Action_dim:', parameters.action_dim)
 
