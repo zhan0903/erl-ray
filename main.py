@@ -128,7 +128,7 @@ class Worker(object):
             print("come here,self.num_frames,done",self.num_frames,done)
 
         if store_transition: self.num_games += 1
-
+        print("done!")
 
         return total_reward
 
@@ -138,8 +138,7 @@ class Agent:
         self.args = args; self.env = env
         self.evolver = utils_ne.SSNE(self.args)
 
-        self.workers = [Worker.remote(args)
-           for _ in range(self.args.pop_size)]
+        self.workers = [Worker.remote(args) for _ in range(self.args.pop_size)]
 
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
