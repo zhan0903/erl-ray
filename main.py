@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_cpus=20)#num_gpus=2,
+@ray.remote(num_gpus=2, num_cpus=20)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -100,6 +100,7 @@ class Worker(object):
         net = ddpg.Actor(self.args)
         net.load_state_dict(individual)
         net.eval()
+        logger.debug("individual[w_out.bias]:{}".format(individual["w_out.bias"]))
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
         if self.args.is_cuda: state = state.cuda()
@@ -160,6 +161,7 @@ class Agent:
         # exit(0)
 
         evaluate_ids = [worker.evaluate.remote(theta_id) for worker, theta_id in zip(self.workers, theta_ids)]
+        logger.debug("evluatat_ids:{}".format(evaluate_ids))
         results = ray.get(evaluate_ids)
         # print("results:")
         logger.debug("results:{}".format(results))
