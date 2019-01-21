@@ -81,7 +81,7 @@ class Worker(object):
         self.env = utils.NormalizedActions(gym.make(env_tag))
         self.args = args
         # self.policy.eval()
-        self.replay_buffer = replay_memory(args.buffer_size)
+        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
         # Details omitted.
 
     def add_experience(self, state, action, next_state, reward, done):
