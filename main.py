@@ -163,6 +163,8 @@ class Agent:
         # theta_ids = ray.put(thetas)
         # exit(0)
 
+        assert len(self.workers) == len(theta_ids)
+
         evaluate_ids = [worker.evaluate.remote(theta_id) for worker, theta_id in zip(self.workers, theta_ids)]
         logger.debug("evluatat_ids:{}".format(evaluate_ids))
         results = ray.get(evaluate_ids)
