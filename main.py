@@ -145,7 +145,7 @@ class Agent:
         self.workers = [Worker.remote(args)
            for _ in range(self.args.pop_size)]
 
-        # self.num_games = 0; self.num_frames = 0; self.gen_frames = None
+        self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
     def list_argsort(self, seq):
         return sorted(range(len(seq)), key=seq.__getitem__)
