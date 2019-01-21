@@ -82,6 +82,7 @@ class Worker(object):
         self.args = args
         # self.policy.eval()
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
+        self.num_games = 0; self.num_frames = 0; self.gen_frames = None
         # Details omitted.
 
     def add_experience(self, state, action, next_state, reward, done):
