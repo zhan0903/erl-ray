@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=2)
+@ray.remote(num_gpus=2, num_cpus=20)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -97,22 +97,14 @@ class Worker(object):
 
     def evaluate(self, individual, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
-        print("0000001111111")
-
         net = ddpg.Actor(self.args)
-        print("00000000")
-
         net.load_state_dict(individual)
         net.eval()
-
-        print("1111111")
-
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
         if self.args.is_cuda: state = state.cuda()
         done = False
 
-        print("22222222")
         while not done:
             if store_transition: self.num_frames += 1; # self.gen_frames += 1
             if render and is_render: self.env.render()
@@ -120,8 +112,6 @@ class Worker(object):
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
-
-            print("333333")
 
             next_state, reward, done, info = self.env.step(action.flatten())  # Simulate one step in environment
             next_state = utils.to_tensor(next_state).unsqueeze(0)
