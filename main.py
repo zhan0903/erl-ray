@@ -158,14 +158,15 @@ class Agent:
         # replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
         # experiences_id = ray.put(replay_buffer)
         # thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
-        theta_ids = [ray.put(ddpg.Actor(self.args).state_dict()) for _ in range(self.args.pop_size)]
+        # theta_ids = [ray.put(ddpg.Actor(self.args).state_dict()) for _ in range(self.args.pop_size)]
+        thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
 
         # theta_ids = ray.put(thetas)
         # exit(0)
 
-        assert len(self.workers) == len(theta_ids)
+        assert len(self.workers) == len(thetas)
 
-        evaluate_ids = [worker.evaluate.remote(theta_id) for worker, theta_id in zip(self.workers, theta_ids)]
+        evaluate_ids = [worker.evaluate.remote(theta) for worker, theta in zip(self.workers, thetas)]
         logger.debug("evluatat_ids:{}".format(evaluate_ids))
         results = ray.get(evaluate_ids)
         # print("results:")
