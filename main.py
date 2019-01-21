@@ -96,7 +96,8 @@ class Worker(object):
 
     def evaluate(self, individual, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
-        net = ddpg.Actor(self.args).load_dict(individual)
+        net = ddpg.Actor(self.args)
+        net.load_state_dict(individual)
         net.eval()
 
         state = self.env.reset()
