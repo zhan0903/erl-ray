@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_cpus=20)
+@ray.remote
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -174,8 +174,8 @@ class Agent:
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
         print("evluatat_ids:{}".format(evaluate_ids))
         results = ray.get(evaluate_ids)
-        # print("results:")
-        logger.debug("results:{}".format(results))
+        print("results:")
+        print("results:{}".format(results))
         exit(0)
 
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     torch.manual_seed(parameters.seed); np.random.seed(parameters.seed); random.seed(parameters.seed)
 
     #Create Agent
-    ray.init(num_cpus=20)
+    ray.init()
     agent = Agent(parameters, env)
     print('Running', env_tag, ' State_dim:', parameters.state_dim, ' Action_dim:', parameters.action_dim)
 
