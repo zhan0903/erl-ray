@@ -156,7 +156,7 @@ class Agent:
         theta_ids = [ray.put(ddpg.Actor(self.args).state_dict()) for _ in range(self.args.pop_size)]
 
         # theta_ids = ray.put(thetas)
-        exit(0)
+        # exit(0)
 
         evaluate_ids = [worker.evaluate.remote(theta_id) for worker, theta_id in zip(self.workers, theta_ids)]
         results = ray.get(evaluate_ids)
