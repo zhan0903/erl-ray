@@ -114,7 +114,7 @@ class Worker(object):
 
         print("22222222")
         while not done:
-            if store_transition: self.num_frames += 1; self.gen_frames += 1
+            if store_transition: self.num_frames += 1; # self.gen_frames += 1
             if render and is_render: self.env.render()
             action = net.forward(state)
             action.clamp(-1, 1)
@@ -145,7 +145,7 @@ class Agent:
         self.workers = [Worker.remote(args)
            for _ in range(self.args.pop_size)]
 
-        self.num_games = 0; self.num_frames = 0; self.gen_frames = None
+        # self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
     def list_argsort(self, seq):
         return sorted(range(len(seq)), key=seq.__getitem__)
@@ -155,7 +155,7 @@ class Agent:
             target_param.data.copy_(param.data)
 
     def train(self):
-        self.gen_frames = 0
+        # self.gen_frames = 0
         print("begin training")
 
         ####################### EVOLUTION #####################
