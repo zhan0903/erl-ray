@@ -175,7 +175,7 @@ class Agent:
 
 
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
-        logger.debug("evluatat_ids:{}".format(evaluate_ids))
+        print("evluatat_ids:{}".format(evaluate_ids))
         results = ray.get(evaluate_ids)
         # print("results:")
         logger.debug("results:{}".format(results))
