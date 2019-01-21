@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=2, num_cpus=20)
+@ray.remote(num_gpus=2)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -97,6 +97,7 @@ class Worker(object):
 
     def evaluate(self, individual, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
+        print("00000000")
         net = ddpg.Actor(self.args)
         net.load_state_dict(individual)
         net.eval()
