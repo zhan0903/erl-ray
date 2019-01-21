@@ -94,7 +94,7 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, individual, is_render, is_action_noise=False, store_transition=True):
+    def evaluate(self, individual, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
         net = ddpg.Actor(self.args).load_dict(individual)
         net.eval()
