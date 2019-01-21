@@ -110,7 +110,7 @@ class Worker(object):
         done = False
 
         while not done:
-            print("come here,self.num_frames:",self.num_frames)
+            print("come here,self.num_frames,done",self.num_frames,done)
 
 
             if store_transition: self.num_frames += 1; # self.gen_frames += 1
@@ -129,6 +129,7 @@ class Worker(object):
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
         if store_transition: self.num_games += 1
+
 
         return total_reward
 
