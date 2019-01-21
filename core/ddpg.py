@@ -10,7 +10,7 @@ import numpy as np
 import logging
 import numpy as np
 import torch.nn as nn
-from ray.rllib.models.pytorch.model import TorchModel
+# from ray.rllib.models.pytorch.model import TorchModel
 
 def soft_update(target, source, tau):
     for target_param, param in zip(target.parameters(), source.parameters()):
@@ -22,9 +22,10 @@ def hard_update(target, source):
         target_param.data.copy_(param.data)
 
 
-class Actor(TorchModel):
+class Actor(nn.Module):
     def __init__(self, args, init=False):
         super(Actor, self).__init__()
+        # TorchModel.__init__(self,args,init=False)
         self.args = args
         l1 = 128; l2 = 128; l3 = l2
 
