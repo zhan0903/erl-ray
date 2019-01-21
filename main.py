@@ -152,8 +152,10 @@ class Agent:
         #Evaluate genomes/individuals
         # replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
         # experiences_id = ray.put(replay_buffer)
-        thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
-        theta_ids = ray.put(thetas)
+        # thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
+        theta_ids = [ray.put(ddpg.Actor(self.args)) for _ in range(self.args.pop_size)]
+
+        # theta_ids = ray.put(thetas)
         exit(0)
 
         evaluate_ids = [worker.evaluate.remote(theta_id) for worker, theta_id in zip(self.workers, theta_ids)]
