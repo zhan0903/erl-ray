@@ -96,8 +96,8 @@ class Worker(object):
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
         # Details omitted.
 
-    def set_gen_frames(self):
-        self.gen_frames = 0
+    def set_gen_frames(self, value):
+        self.gen_frames = value
 
     def ddpg_learning(self, worst_index):
         # DDPG learning step
