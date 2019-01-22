@@ -182,8 +182,8 @@ class Agent:
         print("begin training")
         self.workers[0].set_gen_frames.remote(0)
         print("come htere")
-        gen_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
-        gen_num = ray.get(gen_num_ids)
+        gen_num_id = self.workers[1].get_gen_num.remote()
+        gen_num = ray.get(gen_num_id)
         print("gen_num:{}".format(gen_num))
 
         ####################### EVOLUTION #####################
