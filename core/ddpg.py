@@ -51,7 +51,7 @@ class Actor(nn.Module):
         #Hidden Layer 1
         out = self.w_l1(input)
         if self.args.use_ln: out = self.lnorm1(out)
-        out = F.tanh(out)
+        out = torch.tanh(out)
 
         #Hidden Layer 2
         out = self.w_l2(out)
