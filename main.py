@@ -98,14 +98,14 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, key, is_render=False, is_action_noise=False, store_transition=True):
+    def evaluate(self, key, num_evals):
+        fitness = 0.0
+        for _ in range(num_evals):
+            fitness += self._evaluate(self.pop[key], is_render=False, is_action_noise=False)
+        return fitness / num_evals
+
+    def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
-        # print("00000000")
-        # net = ddpg.Actor(self.args)
-        # net.load_state_dict(individual)
-        # net.eval()
-        # logger.debug("test in evaluate")
-        # print("individual[w_out.bias]:{}".format(individual["w_out.bias"]))
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
         if self.args.is_cuda: state = state.cuda()
@@ -114,7 +114,7 @@ class Worker(object):
         while not done:
             if store_transition: self.num_frames += 1; # self.gen_frames += 1
             if render and is_render: self.env.render()
-            action = self.pop[key].forward(state)
+            action = net.forward(state)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
@@ -129,7 +129,7 @@ class Worker(object):
             state = next_state
             # print("come here,self.num_frames,done", self.num_frames, done)
         if store_transition: self.num_games += 1
-        return key, total_reward
+        return total_reward
 
 
 class Agent:
@@ -167,26 +167,23 @@ class Agent:
         # assert len(self.workers) == len(thetas)
         theta_id = ray.put(ddpg.Actor(self.args).state_dict())
 
-        evaluate_ids = [worker.evaluate.remote(key) for key, worker in enumerate(self.workers)]
+        evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
 
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
         print("evluatat_ids:{}".format(evaluate_ids))
-        results = ray.get(evaluate_ids)
-        print("results:{}".format(results))
-        exit(0)
-
-        # for key in range(self.args.pop_size):
-        #     fitness = 0.0
-        #     for eval in range(self.args.num_evals): fitness += self.evaluate(net, is_render=False, is_action_noise=False)
-        #     all_fitness.append(fitness/self.args.num_evals)
+        # return results based on its order
+        all_fitness = ray.get(evaluate_ids)
+        print("results:{}".format(all_fitness))
+        # exit(0)
 
         best_train_fitness = max(all_fitness)
         worst_index = all_fitness.index(min(all_fitness))
 
         #Validation test
         champ_index = all_fitness.index(max(all_fitness))
-        test_score = 0.0
-        for eval in range(5): test_score += self.evaluate(self.pop[champ_index], is_render=True, is_action_noise=False, store_transition=False)/5.0
+        test_score = self.workers[0].evaluate.remote(champ_index, 5)
+        print("test_score:{}".format(test_score))
+        exit(0)
 
         #NeuroEvolution's probabilistic selection and recombination step
         elite_index = self.evolver.epoch(self.pop, all_fitness)
