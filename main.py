@@ -209,7 +209,7 @@ class Agent:
         # theta_id = ray.put(ddpg.Actor(self.args).state_dict())
         # while True:
         set_num_id = self.workers[0].set_gen_frames.remote(0)
-        set_num = ray.get(set_num_id)
+        # set_num = ray.get(set_num_id)
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         gen_nums = ray.get(get_num_ids)
@@ -223,6 +223,7 @@ class Agent:
         # return results based on its order
         all_fitness = ray.get(evaluate_ids)
         print("results:{}".format(all_fitness))
+
         # exit(0)
 
         best_train_fitness = max(all_fitness)
