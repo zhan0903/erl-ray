@@ -183,7 +183,7 @@ class Agent:
         champ_index = all_fitness.index(max(all_fitness))
         test_score_id = self.workers[0].evaluate.remote(champ_index, 5)
         test_score = ray.get(test_score_id)
-        print("test_score:{}".format(test_score))
+        print("test_score:{0},champ_index:{1}".format(test_score,champ_index))
         exit(0)
 
         #NeuroEvolution's probabilistic selection and recombination step
