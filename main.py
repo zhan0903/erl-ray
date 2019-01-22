@@ -208,6 +208,9 @@ class Agent:
         # assert len(self.workers) == len(thetas)
         # theta_id = ray.put(ddpg.Actor(self.args).state_dict())
         while True:
+            get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
+            gen_nums = ray.get(get_num_ids)
+            print("gen_nums:{0}".format(gen_nums))
 
             evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
 
@@ -228,13 +231,16 @@ class Agent:
             test_score = ray.get(test_score_id)
             print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
             # exit(0)
+            # get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
+
+            # exit(0)
 
             #NeuroEvolution's probabilistic selection and recombination step
-            elite_index = self.workers[0].epoch.remote(all_fitness)
+            # elite_index = self.workers[0].epoch.remote(all_fitness)
 
             ####################### DDPG #########################
             # need to pallarize
-            self.workers[0].ddpg_learning.remote(worst_index)
+            # self.workers[0].ddpg_learning.remote(worst_index)
 
         return best_train_fitness, test_score, elite_index
 
