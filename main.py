@@ -207,29 +207,29 @@ class Agent:
 
         # assert len(self.workers) == len(thetas)
         # theta_id = ray.put(ddpg.Actor(self.args).state_dict())
-        while True:
-            get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
-            gen_nums = ray.get(get_num_ids)
-            print("gen_nums:{0}".format(gen_nums))
+        # while True:
+        get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
+        gen_nums = ray.get(get_num_ids)
+        print("gen_nums:{0}".format(gen_nums))
 
-            evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
+        evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
 
-            # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
-            print("evluatat_ids:{}".format(evaluate_ids))
+        # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
+        print("evluatat_ids:{}".format(evaluate_ids))
 
-            # return results based on its order
-            all_fitness = ray.get(evaluate_ids)
-            print("results:{}".format(all_fitness))
-            # exit(0)
+        # return results based on its order
+        all_fitness = ray.get(evaluate_ids)
+        print("results:{}".format(all_fitness))
+        # exit(0)
 
-            best_train_fitness = max(all_fitness)
-            worst_index = all_fitness.index(min(all_fitness))
+        best_train_fitness = max(all_fitness)
+        worst_index = all_fitness.index(min(all_fitness))
 
-            #Validation test
-            champ_index = all_fitness.index(max(all_fitness))
-            test_score_id = self.workers[0].evaluate.remote(champ_index, 5, store_transition=False)
-            test_score = ray.get(test_score_id)
-            print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
+        #Validation test
+        champ_index = all_fitness.index(max(all_fitness))
+        test_score_id = self.workers[0].evaluate.remote(champ_index, 5, store_transition=False)
+        test_score = ray.get(test_score_id)
+        print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
             # exit(0)
             # get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
 
