@@ -93,11 +93,14 @@ class Worker(object):
         for i in range(args.pop_size):
             self.pop[i].eval()
 
-        self.num_games = 0; self.num_frames = 0; self.gen_frames = None
+        self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
         # Details omitted.
 
     def set_gen_frames(self, value):
         self.gen_frames = value
+
+    def get_gen_num(self):
+        return self.gen_frames
 
     def ddpg_learning(self, worst_index):
         # DDPG learning step
@@ -164,9 +167,7 @@ class Agent:
     def __init__(self, args, env):
         self.args = args; self.env = env
         self.evolver = utils_ne.SSNE(self.args)
-
         self.workers = [Worker.remote(args) for _ in range(self.args.pop_size)]
-
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
     def list_argsort(self, seq):
@@ -180,6 +181,9 @@ class Agent:
         # self.gen_frames = 0
         print("begin training")
         self.workers[0].set_gen_frames.remote(0)
+        gen_num_ids = [self.workers[i].get_gen_num.remote() for i in range(self.args.pop_size)]
+        gen_num = ray.get(gen_num_ids)
+        print("gen_num:{}".format(gen_num))
 
         ####################### EVOLUTION #####################
         # all_fitness = []
