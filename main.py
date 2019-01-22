@@ -242,7 +242,7 @@ class Agent:
             # need to pallarize
             # self.workers[0].ddpg_learning.remote(worst_index)
 
-        return best_train_fitness, test_score, elite_index
+        return best_train_fitness, test_score,3 #elite_index
 
 
 if __name__ == "__main__":
