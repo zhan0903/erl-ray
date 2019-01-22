@@ -96,6 +96,9 @@ class Worker(object):
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
         # Details omitted.
 
+    def set_gen_frames(self):
+        self.gen_frames = 0
+
     def ddpg_learning(self, worst_index):
         # DDPG learning step
         if len(self.replay_buffer) > self.args.batch_size * 5:
@@ -138,7 +141,7 @@ class Worker(object):
         done = False
 
         while not done:
-            if store_transition: self.num_frames += 1; # self.gen_frames += 1
+            if store_transition: self.num_frames += 1; self.gen_frames += 1
             if render and is_render: self.env.render()
             action = net.forward(state)
             action.clamp(-1, 1)
@@ -176,6 +179,7 @@ class Agent:
     def train(self):
         # self.gen_frames = 0
         print("begin training")
+        self.workers[0].set_gen_frames.remote(0)
 
         ####################### EVOLUTION #####################
         # all_fitness = []
