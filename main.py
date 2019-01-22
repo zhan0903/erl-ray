@@ -181,18 +181,6 @@ class Agent:
     def train(self):
         # self.gen_frames = 0
         print("begin training")
-        # gen_num0_id = self.workers[0].set_gen_frames.remote(0)
-        # gen_num0 = ray.get(gen_num0_id)
-        print("come htere")
-        # gen_num_id1 = self.workers[1].get_gen_num.remote()
-        # get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
-        # gen_num_id1 = self.workers[1].get_gen_num.remote()
-
-        # gen_nums = ray.get(get_num_ids)
-        # gen_num0 = ray.get(gen_num_id0)
-
-        # print("gen_nums:{0}".format(gen_nums))
-
         ####################### EVOLUTION #####################
         # all_fitness = []
         #Evaluate genomes/individuals
@@ -208,8 +196,9 @@ class Agent:
         # assert len(self.workers) == len(thetas)
         # theta_id = ray.put(ddpg.Actor(self.args).state_dict())
         # while True:
-        set_num_id = self.workers[0].set_gen_frames.remote(0)
+        # set_num_id = self.workers[0].set_gen_frames.remote(0)
         # set_num = ray.get(set_num_id)
+        for worker in self.workers: worker.set_gen_frames.remote(0)
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         gen_nums = ray.get(get_num_ids)
@@ -239,14 +228,16 @@ class Agent:
 
             # exit(0)
 
-            #NeuroEvolution's probabilistic selection and recombination step
-            # elite_index = self.workers[0].epoch.remote(all_fitness)
+        # NeuroEvolution's probabilistic selection and recombination step
+        elite_index_id = self.workers[0].epoch.remote(all_fitness)
+        elite_index = ray.get(elite_index_id)
+        print("elite_index:{}".format(elite_index))
 
             ####################### DDPG #########################
             # need to pallarize
             # self.workers[0].ddpg_learning.remote(worst_index)
 
-        return best_train_fitness, test_score,3 #elite_index
+        return best_train_fitness, test_score, elite_index
 
 
 if __name__ == "__main__":
