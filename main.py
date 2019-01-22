@@ -80,13 +80,38 @@ class Worker(object):
         # self.policy = ddpg.Actor(args)
         self.env = utils.NormalizedActions(gym.make(env_tag))
         self.args = args
+        self.evolver = utils_ne.SSNE(self.args)
+
+        # init rl agent
+        self.rl_agent = ddpg.DDPG(args)
+        self.ounoise = ddpg.OUNoise(args.action_dim)
         # self.policy.eval()
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
-        self.num_games = 0; self.num_frames = 0; self.gen_frames = None
+
+        # init ea pop
         self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
         for i in range(args.pop_size):
             self.pop[i].eval()
+
+        self.num_games = 0; self.num_frames = 0; self.gen_frames = None
         # Details omitted.
+
+    def ddpg_learning(self, worst_index):
+        # DDPG learning step
+        if len(self.replay_buffer) > self.args.batch_size * 5:
+            for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
+                transitions = self.replay_buffer.sample(self.args.batch_size)
+                batch = replay_memory.Transition(*zip(*transitions))
+                self.rl_agent.update_parameters(batch)
+
+            #Synch RL Agent to NE
+            if self.num_games % self.args.synch_period == 0:
+                self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
+                self.evolver.rl_policy = worst_index
+                print('Synch from RL --> Nevo')
+
+    def epoch(self, all_fitness):
+        return self.evolver.epoch(self.pop, all_fitness)
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -128,7 +153,6 @@ class Worker(object):
 
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
-            # print("come here,self.num_frames,done", self.num_frames, done)
         if store_transition: self.num_games += 1
         return total_reward
 
@@ -172,6 +196,7 @@ class Agent:
 
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
         print("evluatat_ids:{}".format(evaluate_ids))
+
         # return results based on its order
         all_fitness = ray.get(evaluate_ids)
         print("results:{}".format(all_fitness))
@@ -184,14 +209,16 @@ class Agent:
         champ_index = all_fitness.index(max(all_fitness))
         test_score_id = self.workers[0].evaluate.remote(champ_index, 5)
         test_score = ray.get(test_score_id)
-        print("test_score:{0},champ_index:{1}".format(test_score,champ_index))
-        exit(0)
+        print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
+        # exit(0)
 
         #NeuroEvolution's probabilistic selection and recombination step
-        elite_index = self.evolver.epoch(self.pop, all_fitness)
+        elite_index = self.workers[0].epoch.remote(all_fitness)
 
+        ####################### DDPG #########################
+        # need to pallarize
+        self.workers[0].ddpg_learning.remote(worst_index)
 
-        # print("ddpg time:", (time.time()-time_evolution)/3600)
         return best_train_fitness, test_score, elite_index
 
 
