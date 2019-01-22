@@ -181,16 +181,17 @@ class Agent:
     def train(self):
         # self.gen_frames = 0
         print("begin training")
-        gen_num0_id = self.workers[0].set_gen_frames.remote(0)
-        gen_num0 = ray.get(gen_num0_id)
+        # gen_num0_id = self.workers[0].set_gen_frames.remote(0)
+        # gen_num0 = ray.get(gen_num0_id)
         print("come htere")
         # gen_num_id1 = self.workers[1].get_gen_num.remote()
-        gen_num_id1 = self.workers[1].get_gen_num.remote()
+        get_num_ids = [worker.gen_frames.remote() for worker in self.workers]
+        # gen_num_id1 = self.workers[1].get_gen_num.remote()
 
-        gen_num1 = ray.get(gen_num_id1)
+        gen_nums = ray.get(get_num_ids)
         # gen_num0 = ray.get(gen_num_id0)
 
-        print("gen_num0:{0},gen_num1:{1}".format(gen_num0,gen_num1))
+        print("gen_nums:{0}".format(gen_nums))
 
         ####################### EVOLUTION #####################
         # all_fitness = []
