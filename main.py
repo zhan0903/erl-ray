@@ -260,6 +260,8 @@ if __name__ == "__main__":
             if elite_index != None: torch.save(agent.pop[elite_index].state_dict(), parameters.save_foldername + 'evo_net')
             print("Progress Saved")
 
+        exit(0)
+
 
 
 
