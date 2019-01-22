@@ -130,11 +130,11 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, key, num_evals):
+    def evaluate(self, key, num_evals, store_transition=True):
         fitness = 0.0
         print("pop[key][w_out].bias:{0},key:{1}".format(self.pop[key].state_dict()["w_out.bias"],key))
         for _ in range(num_evals):
-            fitness += self._evaluate(self.pop[key], is_render=False, is_action_noise=False)
+            fitness += self._evaluate(self.pop[key], store_transition=store_transition)
         return fitness / num_evals
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
@@ -227,7 +227,7 @@ class Agent:
 
             #Validation test
             champ_index = all_fitness.index(max(all_fitness))
-            test_score_id = self.workers[0].evaluate.remote(champ_index, 5)
+            test_score_id = self.workers[0].evaluate.remote(champ_index, 5, store_transition=False)
             test_score = ray.get(test_score_id)
             print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
             # exit(0)
