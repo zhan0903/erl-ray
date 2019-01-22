@@ -56,15 +56,14 @@ class Actor(nn.Module):
         #Hidden Layer 2
         out = self.w_l2(out)
         if self.args.use_ln: out = self.lnorm2(out)
-        out = F.tanh(out)
+        out = torch.tanh(out)
 
         #Out
-        out = F.tanh(self.w_out(out))
+        out = torch.tanh(self.w_out(out))
         return out
 
 
 class Critic(nn.Module):
-
     def __init__(self, args):
         super(Critic, self).__init__()
         self.args = args
@@ -105,9 +104,7 @@ class Critic(nn.Module):
 
 class DDPG(object):
     def __init__(self, args):
-
         self.args = args
-
         self.actor = Actor(args, init=True)
         self.actor_target = Actor(args, init=True)
         self.actor_optim = Adam(self.actor.parameters(), lr=0.5e-4)
@@ -154,7 +151,7 @@ class DDPG(object):
         policy_loss = -self.critic.forward((state_batch), self.actor.forward((state_batch)))
         policy_loss = policy_loss.mean()
         policy_loss.backward()
-        nn.utils.clip_grad_norm(self.critic.parameters(), 10)
+        nn.utils.clip_grad_norm_(self.critic.parameters(), 10)
         self.actor_optim.step()
 
         soft_update(self.actor_target, self.actor, self.tau)

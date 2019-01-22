@@ -185,13 +185,13 @@ class Agent:
         # gen_num0 = ray.get(gen_num0_id)
         print("come htere")
         # gen_num_id1 = self.workers[1].get_gen_num.remote()
-        get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
+        # get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         # gen_num_id1 = self.workers[1].get_gen_num.remote()
 
-        gen_nums = ray.get(get_num_ids)
+        # gen_nums = ray.get(get_num_ids)
         # gen_num0 = ray.get(gen_num_id0)
 
-        print("gen_nums:{0}".format(gen_nums))
+        # print("gen_nums:{0}".format(gen_nums))
 
         ####################### EVOLUTION #####################
         # all_fitness = []
