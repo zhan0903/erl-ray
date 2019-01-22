@@ -181,7 +181,8 @@ class Agent:
 
         #Validation test
         champ_index = all_fitness.index(max(all_fitness))
-        test_score = self.workers[0].evaluate.remote(champ_index, 5)
+        test_score_id = self.workers[0].evaluate.remote(champ_index, 5)
+        test_score = ray.get(test_score_id)
         print("test_score:{}".format(test_score))
         exit(0)
 
