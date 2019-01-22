@@ -188,7 +188,7 @@ class Agent:
         # gen_num1 = ray.get(gen_num_id1)
         gen_num0 = ray.get(gen_num_id0)
 
-        print("gen_num1:{0},gen_num0:{1}".format(gen_num1,gen_num0))
+        print("gen_num0:{0}".format(gen_num0))
 
         ####################### EVOLUTION #####################
         # all_fitness = []
