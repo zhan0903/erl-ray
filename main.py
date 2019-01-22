@@ -100,6 +100,7 @@ class Worker(object):
 
     def evaluate(self, key, num_evals):
         fitness = 0.0
+        print("pop[key][w_out].bias:{0},key:{1}".format(self.pop[key].state_dict()["w_out.bias"],key))
         for _ in range(num_evals):
             fitness += self._evaluate(self.pop[key], is_render=False, is_action_noise=False)
         return fitness / num_evals
@@ -153,7 +154,7 @@ class Agent:
         print("begin training")
 
         ####################### EVOLUTION #####################
-        all_fitness = []
+        # all_fitness = []
         #Evaluate genomes/individuals
         # replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
         # experiences_id = ray.put(replay_buffer)
@@ -165,7 +166,7 @@ class Agent:
         # exit(0)
 
         # assert len(self.workers) == len(thetas)
-        theta_id = ray.put(ddpg.Actor(self.args).state_dict())
+        # theta_id = ray.put(ddpg.Actor(self.args).state_dict())
 
         evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
 
