@@ -131,7 +131,7 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, net, num_evals, store_transition=True):
+    def evaluate(self, net, num_evals=1, store_transition=True):
         fitness = 0.0
         print("pop[key][w_out].bias:{0}".format(net.state_dict()["w_out.bias"]))
         for _ in range(num_evals):
@@ -250,7 +250,7 @@ class Agent:
         # exit(0)
 
         ###################### DDPG #########################
-        results_rl_id = self.workers[0].evaluate.remote(self.rl_agent.actor, is_render=False, is_action_noise=True) #Train
+        results_rl_id = self.workers[0].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
         results_rl = ray.get(results_rl_id)
         print("len of results_rl,",len(results_rl[0]))
 
