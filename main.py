@@ -136,7 +136,7 @@ class Worker(object):
         print("pop[key][w_out].bias:{0}".format(net.state_dict()["w_out.bias"]))
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        return self.replay_buffer,fitness / num_evals,self.num_frames
+        return self.replay_buffer,fitness / num_evals,self.num_frames,self.gen_frames
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -173,12 +173,11 @@ class Agent:
         self.pop = []
         for _ in range(args.pop_size):
             self.pop.append(ddpg.Actor(args))
-        self.workers = [Worker.remote(args) for _ in range(self.args.pop_size)]
-
+        self.workers = [Worker.remote(args) for _ in range(self.args.pop_size+1)]
         self.rl_agent = ddpg.DDPG(args)
         # self.ounoise = ddpg.OUNoise(args.action_dim)
 
-        self.num_games = 0; self.num_frames = 0; self.gen_frames = None
+        self.num_games = 0; self.num_frames = 0; self.gen_frames = 0;self.len_replay = 0
 
     def list_argsort(self, seq):
         return sorted(range(len(seq)), key=seq.__getitem__)
@@ -231,15 +230,16 @@ class Agent:
         # assert len(self.workers) == len(thetas)
         # theta_id = ray.put(ddpg.Actor(self.args).state_dict())
         # while True:
+
         # set_num_id = self.workers[0].set_gen_frames.remote(0)
         # set_num = ray.get(set_num_id)
-        # for worker in self.workers: worker.set_gen_frames.remote(0)
+        for worker in self.workers: worker.set_gen_frames.remote(0)
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         gen_nums = ray.get(get_num_ids)
         print("gen_nums:{0}".format(gen_nums))
         evaluate_ids = [worker.evaluate.remote(self.pop[key], self.args.num_evals)
-                        for key, worker in enumerate(self.workers)]
+                        for key, worker in enumerate(self.workers[:-1])]
 
 
         # evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
@@ -276,22 +276,19 @@ class Agent:
         # exit(0)
 
         ###################### DDPG #########################
-        result_rl_id = self.workers[0].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
+        result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
         result_rl = ray.get(result_rl_id)
         print("len of results_rl,", len(result_rl[0]))
 
-        len_replay = len(result_rl[0])
-        num_games = result_rl[2]
         results_ea.append(result_rl)
 
-        for i in range(1, self.args.pop_size):
-            len_replay = len_replay + len(results_ea[i][0])
-            num_games = num_games+results_ea[i][2]
-
-        self.num_games = num_games
+        for i in range(self.args.pop_size+1):
+            self.gen_frames = self.gen_frames+results_ea[i][3]
+            self.num_games = self.num_games+results_ea[i][2]
+            self.len_replay = self.len_replay + len(results_ea[i][0])
 
         # DDPG learning step
-        if len_replay > self.args.batch_size * 5:
+        if self.len_replay > self.args.batch_size * 5:
             for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
                 sample_choose = np.random.randint(self.args.pop_size+1)
                 transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
