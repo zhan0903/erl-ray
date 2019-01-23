@@ -294,9 +294,7 @@ class Agent:
                 transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
                 batch = replay_memory.Transition(*zip(*transitions))
                 self.rl_agent.update_parameters(batch)
-
-            exit(0)
-
+            # exit(0)
             # Synch RL Agent to NE
             if self.num_games % self.args.synch_period == 0:
                 self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
