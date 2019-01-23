@@ -135,7 +135,7 @@ class Worker(object):
         print("pop[key][w_out].bias:{0},key:{1}".format(self.pop[key].state_dict()["w_out.bias"],key))
         for _ in range(num_evals):
             fitness += self._evaluate(self.pop[key], store_transition=store_transition)
-        return fitness / num_evals, self.replay_buffer
+        return self.replay_buffer #,fitness / num_evals,
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -216,8 +216,8 @@ class Agent:
         # print("evluatat_ids:{}".format(evaluate_ids))
 
         # return results based on its order
-        all_fitness = ray.get(evaluate_ids)
-        print("results:{}".format(all_fitness))
+        results = ray.get(evaluate_ids)
+        print("results:{}".format(results))
 
         exit(0)
         best_train_fitness = max(all_fitness)
