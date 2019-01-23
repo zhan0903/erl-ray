@@ -135,7 +135,7 @@ class Worker(object):
         print("pop[key][w_out].bias:{0}".format(net.state_dict()["w_out.bias"]))
         for _ in range(num_evals):
             fitness += self._evaluate(net, store_transition=store_transition)
-        return self.replay_buffer #,fitness / num_evals,
+        return self.replay_buffer,fitness / num_evals
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
