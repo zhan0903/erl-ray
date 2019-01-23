@@ -84,10 +84,10 @@ class Worker(object):
         # self.replay_buffer = replay_buff
 
         # init rl agent
-        self.rl_agent = ddpg.DDPG(args)
+        # self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
         # self.policy.eval()
-        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
+        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size/args.pop_size)
 
         # init ea pop
         self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
@@ -174,6 +174,10 @@ class Agent:
         for _ in range(args.pop_size):
             self.pop.append(ddpg.Actor(args))
         self.workers = [Worker.remote(args) for _ in range(self.args.pop_size)]
+
+        self.rl_agent = ddpg.DDPG(args)
+        # self.ounoise = ddpg.OUNoise(args.action_dim)
+
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
     def list_argsort(self, seq):
@@ -218,13 +222,13 @@ class Agent:
         # print("evluatat_ids:{}".format(evaluate_ids))
 
         # return results based on its order
-        results = ray.get(evaluate_ids)
-        print("results:{}".format(results))
-        print("replay memory lenght:",len(results[0][0]))
+        results_ea = ray.get(evaluate_ids)
+        print("results:{}".format(results_ea))
+        print("replay memory lenght:",len(results_ea[0][0]))
         all_fitness = []
 
         for i in range(self.args.pop_size):
-            all_fitness.append(results[i][1])
+            all_fitness.append(results_ea[i][1])
 
         print("fitness:",all_fitness)
         best_train_fitness = max(all_fitness)
@@ -243,9 +247,15 @@ class Agent:
         # elite_index_id = self.workers[0].epoch.remote(all_fitness)
         # elite_index = ray.get(elite_index_id)
         print("elite_index:{}".format(elite_index))
+        # exit(0)
+
+        ###################### DDPG #########################
+        results_rl_id = self.workers[0].evaluate.remote(self.rl_agent.actor, is_render=False, is_action_noise=True) #Train
+        results_rl = ray.get(results_rl_id)
+        print("len of results_rl,",len(results_rl[0]))
+
         exit(0)
 
-            ####################### DDPG #########################
             # need to pallarize
             # self.workers[0].ddpg_learning.remote(worst_index)
 
