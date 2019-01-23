@@ -75,19 +75,19 @@ original = False
 
 @ray.remote
 class Worker(object):
-    def __init__(self, args, replay_buff):
+    def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
         # self.policy = ddpg.Actor(args)
         self.env = utils.NormalizedActions(gym.make(env_tag))
         self.args = args
         self.evolver = utils_ne.SSNE(self.args)
-        self.replay_buffer = replay_buff
+        # self.replay_buffer = replay_buff
 
         # init rl agent
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
         # self.policy.eval()
-        # self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
+        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
 
         # init ea pop
         self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
@@ -169,11 +169,11 @@ class Agent:
     def __init__(self, args, env):
         self.args = args; self.env = env
         self.evolver = utils_ne.SSNE(self.args)
-        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
+        # self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
         self.pop = []
         for _ in range(args.pop_size):
             self.pop.append(ddpg.Actor(args))
-        self.workers = [Worker.remote(args, self.replay_buffer) for _ in range(self.args.pop_size)]
+        self.workers = [Worker.remote(args) for _ in range(self.args.pop_size)]
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
     def list_argsort(self, seq):
@@ -221,21 +221,29 @@ class Agent:
         results = ray.get(evaluate_ids)
         print("results:{}".format(results))
         print("replay memory lenght:",len(results[0][0]))
+        all_fitness = []
 
-        exit(0)
+        for i in range(self.args.pop_size):
+            all_fitness.append(results[i][1])
+
+        print("fitness:",all_fitness)
         best_train_fitness = max(all_fitness)
         worst_index = all_fitness.index(min(all_fitness))
 
         #Validation test
         champ_index = all_fitness.index(max(all_fitness))
-        test_score_id = self.workers[0].evaluate.remote(champ_index, 5, store_transition=False)
+        print("champ_index:",champ_index)
+
+        test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index], 5, store_transition=False)
         test_score = ray.get(test_score_id)
         print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
 
         # NeuroEvolution's probabilistic selection and recombination step
-        elite_index_id = self.workers[0].epoch.remote(all_fitness)
-        elite_index = ray.get(elite_index_id)
+        elite_index = self.evolver.epoch(self.pop, all_fitness)
+        # elite_index_id = self.workers[0].epoch.remote(all_fitness)
+        # elite_index = ray.get(elite_index_id)
         print("elite_index:{}".format(elite_index))
+        exit(0)
 
             ####################### DDPG #########################
             # need to pallarize
