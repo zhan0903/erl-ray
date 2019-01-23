@@ -220,6 +220,7 @@ class Agent:
         # return results based on its order
         results = ray.get(evaluate_ids)
         print("results:{}".format(results))
+        print("replay memory lenght:",len(results[0][0]))
 
         exit(0)
         best_train_fitness = max(all_fitness)
