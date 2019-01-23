@@ -130,11 +130,11 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, key, num_evals, store_transition=True):
+    def evaluate(self, net, num_evals, store_transition=True):
         fitness = 0.0
-        print("pop[key][w_out].bias:{0},key:{1}".format(self.pop[key].state_dict()["w_out.bias"],key))
+        print("pop[key][w_out].bias:{0}".format(net.state_dict()["w_out.bias"]))
         for _ in range(num_evals):
-            fitness += self._evaluate(self.pop[key], store_transition=store_transition)
+            fitness += self._evaluate(net, store_transition=store_transition)
         return self.replay_buffer #,fitness / num_evals,
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
