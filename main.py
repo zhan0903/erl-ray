@@ -135,7 +135,7 @@ class Worker(object):
         print("pop[key][w_out].bias:{0},key:{1}".format(self.pop[key].state_dict()["w_out.bias"],key))
         for _ in range(num_evals):
             fitness += self._evaluate(self.pop[key], store_transition=store_transition)
-        return fitness / num_evals
+        return fitness / num_evals, self.replay_buffer
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -168,6 +168,9 @@ class Agent:
     def __init__(self, args, env):
         self.args = args; self.env = env
         self.evolver = utils_ne.SSNE(self.args)
+        self.pop = []
+        for _ in range(args.pop_size):
+            self.pop.append(ddpg.Actor(args))
         self.workers = [Worker.remote(args) for _ in range(self.args.pop_size)]
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
@@ -198,23 +201,25 @@ class Agent:
         # while True:
         # set_num_id = self.workers[0].set_gen_frames.remote(0)
         # set_num = ray.get(set_num_id)
-        for worker in self.workers: worker.set_gen_frames.remote(0)
+        # for worker in self.workers: worker.set_gen_frames.remote(0)
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         gen_nums = ray.get(get_num_ids)
         print("gen_nums:{0}".format(gen_nums))
+        evaluate_ids = [worker.evaluate.remote(self.pop[key], self.args.num_evals)
+                        for key, worker in enumerate(self.workers)]
 
-        evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
+
+        # evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
 
         # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
-        print("evluatat_ids:{}".format(evaluate_ids))
+        # print("evluatat_ids:{}".format(evaluate_ids))
 
         # return results based on its order
         all_fitness = ray.get(evaluate_ids)
         print("results:{}".format(all_fitness))
 
-        # exit(0)
-
+        exit(0)
         best_train_fitness = max(all_fitness)
         worst_index = all_fitness.index(min(all_fitness))
 
@@ -223,10 +228,6 @@ class Agent:
         test_score_id = self.workers[0].evaluate.remote(champ_index, 5, store_transition=False)
         test_score = ray.get(test_score_id)
         print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
-            # exit(0)
-            # get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
-
-            # exit(0)
 
         # NeuroEvolution's probabilistic selection and recombination step
         elite_index_id = self.workers[0].epoch.remote(all_fitness)
