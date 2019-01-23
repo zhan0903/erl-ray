@@ -136,7 +136,7 @@ class Worker(object):
         print("pop[key][w_out].bias:{0}".format(net.state_dict()["w_out.bias"]))
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        return self.replay_buffer,fitness / num_evals
+        return self.replay_buffer,fitness / num_evals,self.num_frames
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -186,6 +186,32 @@ class Agent:
     def rl_to_evo(self, rl_net, evo_net):
         for target_param, param in zip(evo_net.parameters(), rl_net.parameters()):
             target_param.data.copy_(param.data)
+
+    def evaluate(self, net, is_render, is_action_noise=False, store_transition=True):
+        total_reward = 0.0
+        state = self.env.reset()
+        state = utils.to_tensor(state).unsqueeze(0)
+        if self.args.is_cuda: state = state.cuda()
+        done = False
+
+        while not done:
+            if store_transition: self.num_frames += 1; self.gen_frames += 1
+            if render and is_render: self.env.render()
+            action = net.forward(state)
+            action.clamp(-1, 1)
+            action = utils.to_numpy(action.cpu())
+            if is_action_noise: action += self.ounoise.noise()
+
+            next_state, reward, done, info = self.env.step(action.flatten())  # Simulate one step in environment
+            next_state = utils.to_tensor(next_state).unsqueeze(0)
+            if self.args.is_cuda:
+                next_state = next_state.cuda()
+            total_reward += reward
+
+            if store_transition: self.add_experience(state, action, next_state, reward, done)
+            state = next_state
+        if store_transition: self.num_games += 1
+        return total_reward
 
     def train(self):
         # self.gen_frames = 0
@@ -250,14 +276,35 @@ class Agent:
         # exit(0)
 
         ###################### DDPG #########################
-        results_rl_id = self.workers[0].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
-        results_rl = ray.get(results_rl_id)
-        print("len of results_rl,",len(results_rl[0]))
+        result_rl_id = self.workers[0].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
+        result_rl = ray.get(result_rl_id)
+        print("len of results_rl,", len(result_rl[0]))
 
-        exit(0)
+        len_replay = len(result_rl[0])
+        num_games = result_rl[2]
+        results_ea.append(result_rl)
 
-            # need to pallarize
-            # self.workers[0].ddpg_learning.remote(worst_index)
+        for i in range(1, self.args.pop_size):
+            len_replay = len_replay + len(results_ea[i][0])
+            num_games = num_games+results_ea[i][2]
+
+        self.num_games = num_games
+
+        # DDPG learning step
+        if len_replay > self.args.batch_size * 5:
+            for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
+                sample_choose = np.random.randint(self.args.pop_size+1)
+                transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
+                batch = replay_memory.Transition(*zip(*transitions))
+                self.rl_agent.update_parameters(batch)
+
+            exit(0)
+
+            # Synch RL Agent to NE
+            if self.num_games % self.args.synch_period == 0:
+                self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
+                self.evolver.rl_policy = worst_index
+                print('Synch from RL --> Nevo')
 
         return best_train_fitness, test_score, elite_index
 
