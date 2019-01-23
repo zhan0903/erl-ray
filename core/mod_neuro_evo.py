@@ -10,7 +10,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
-logger.setLevel(level=logging.INFO)
+logger.setLevel(level=logging.DEBUG)
 
 
 #Neuroevolution SSNE
@@ -174,6 +174,8 @@ class SSNE:
         for i, j in zip(offsprings[0::2], offsprings[1::2]):
             logger.debug("crossover the selected offsprings")
             if random.random() < self.args.crossover_prob: self.crossover_inplace(pop[i], pop[j])
+
+        logger.debug("new_elitists:{}".format(new_elitists))
 
         # Mutate all genes in the population except the new elitists
         for i in range(self.population_size):
