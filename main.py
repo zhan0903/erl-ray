@@ -265,7 +265,7 @@ class Agent:
         print("champ_index:",champ_index)
 
         test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index], 5, store_transition=False)
-        test_score = ray.get(test_score_id)
+        test_score = ray.get(test_score_id)[1]
         print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
 
         # NeuroEvolution's probabilistic selection and recombination step
@@ -300,6 +300,8 @@ class Agent:
                 self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
                 self.evolver.rl_policy = worst_index
                 print('Synch from RL --> Nevo')
+
+        print(best_train_fitness, test_score, elite_index)
 
         return best_train_fitness, test_score, elite_index
 
