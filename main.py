@@ -87,7 +87,7 @@ class Worker(object):
         # self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
         # self.policy.eval()
-        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size/args.pop_size)
+        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
 
         # init ea pop
         self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
