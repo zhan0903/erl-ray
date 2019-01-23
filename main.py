@@ -75,18 +75,19 @@ original = False
 
 @ray.remote
 class Worker(object):
-    def __init__(self, args):
+    def __init__(self, args, replay_buff):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
         # self.policy = ddpg.Actor(args)
         self.env = utils.NormalizedActions(gym.make(env_tag))
         self.args = args
         self.evolver = utils_ne.SSNE(self.args)
+        self.replay_buffer = replay_buff
 
         # init rl agent
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
         # self.policy.eval()
-        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
+        # self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
 
         # init ea pop
         self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
@@ -168,10 +169,11 @@ class Agent:
     def __init__(self, args, env):
         self.args = args; self.env = env
         self.evolver = utils_ne.SSNE(self.args)
+        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
         self.pop = []
         for _ in range(args.pop_size):
             self.pop.append(ddpg.Actor(args))
-        self.workers = [Worker.remote(args) for _ in range(self.args.pop_size)]
+        self.workers = [Worker.remote(args, self.replay_buffer) for _ in range(self.args.pop_size)]
         self.num_games = 0; self.num_frames = 0; self.gen_frames = None
 
     def list_argsort(self, seq):
