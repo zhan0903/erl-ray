@@ -192,7 +192,7 @@ class Agent:
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
-        # if self.args.is_cuda: state = state.cuda()
+        if self.args.is_cuda: state = state.cuda()
         done = False
 
         while not done:
@@ -280,10 +280,15 @@ class Agent:
         # exit(0)
 
         ###################### DDPG #########################
-        result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
-        result_rl = ray.get(result_rl_id)
+       # result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
+       # result_rl = ray.get(result_rl_id)
+
+        result_rl = self.evaluate(self.rl_agent.actor, is_action_noise=True)
+
         print("len of results_rl,", len(result_rl[0]))
+
         results_ea.append(result_rl)
+        exit(0)
 
         for i in range(self.args.pop_size+1):
             self.gen_frames = self.gen_frames+results_ea[i][3]
