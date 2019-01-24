@@ -271,10 +271,10 @@ class Agent:
 
         print("results_rl,", result_rl)
 
-        results_ea.append(result_rl)
-        exit(0)
+        # results_ea.append(result_rl)
+        # exit(0)
 
-        for i in range(self.args.pop_size+1):
+        for i in range(self.args.pop_size):
             self.gen_frames = self.gen_frames+results_ea[i][3]
             self.num_games = self.num_games+results_ea[i][2]
             self.len_replay = self.len_replay + len(results_ea[i][0])
