@@ -119,6 +119,11 @@ class DDPG(object):
         hard_update(self.actor_target, self.actor)  # Make sure target is with the same weight
         hard_update(self.critic_target, self.critic)
 
+    def set_cuda(self,value):
+        self.actor.is_cuda = value
+        pass
+
+
     def update_parameters(self, batch):
         state_batch = torch.cat(batch.state)
         next_state_batch = torch.cat(batch.next_state)
