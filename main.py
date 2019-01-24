@@ -35,7 +35,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = False
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote
+@ray.remote(num_gpus=2)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
