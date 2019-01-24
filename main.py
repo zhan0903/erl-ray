@@ -152,6 +152,8 @@ class Worker(object):
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
+            print("come there in evaluate")
+
 
             next_state, reward, done, info = self.env.step(action.flatten())  # Simulate one step in environment
             print("come there in evaluate")
@@ -176,7 +178,7 @@ class Agent:
             self.pop.append(ddpg.Actor(args))
         self.workers = [Worker.remote(args) for _ in range(self.args.pop_size+1)]
 
-        args.is_cuda = True; args.is_memory_cuda = True
+        # args.is_cuda = True; args.is_memory_cuda = True
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
 
@@ -230,8 +232,10 @@ class Agent:
         print("begin training")
         ####################### EVOLUTION #####################
         for worker in self.workers: worker.set_gen_frames.remote(0)
+        print("after set_gen_frames")
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
+
         gen_nums = ray.get(get_num_ids)
         print("gen_nums:{0}".format(gen_nums))
         evaluate_ids = [worker.evaluate.remote(self.pop[key], self.args.num_evals)
