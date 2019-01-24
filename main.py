@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=2,num_cpus=24)
+@ray.remote(num_gpus=2)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -154,7 +154,7 @@ class Worker(object):
             if is_action_noise: action += self.ounoise.noise()
 
             next_state, reward, done, info = self.env.step(action.flatten())  # Simulate one step in environment
-            # print()
+            print("come there in evaluate")
             next_state = utils.to_tensor(next_state).unsqueeze(0)
             if self.args.is_cuda:
                 next_state = next_state.cuda()
