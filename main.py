@@ -169,7 +169,7 @@ class Agent:
     def __init__(self, args, env):
         self.args = args; self.env = env
         self.evolver = utils_ne.SSNE(self.args)
-        # self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
+        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size)
         self.pop = []
         for _ in range(args.pop_size):
             self.pop.append(ddpg.Actor(args))
@@ -179,7 +179,7 @@ class Agent:
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
 
-        self.num_games = 0; self.num_frames = 0; self.gen_frames = 0;self.len_replay = 0
+        self.num_games = 0; self.num_frames = 0; self.gen_frames = 0; self.len_replay = 0
 
     def list_argsort(self, seq):
         return sorted(range(len(seq)), key=seq.__getitem__)
@@ -187,6 +187,16 @@ class Agent:
     def rl_to_evo(self, rl_net, evo_net):
         for target_param, param in zip(evo_net.parameters(), rl_net.parameters()):
             target_param.data.copy_(param.data)
+
+    def add_experience(self, state, action, next_state, reward, done):
+        reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
+        if self.args.is_cuda: reward = reward.cuda()
+        if self.args.use_done_mask:
+            done = utils.to_tensor(np.array([done]).astype('uint8')).unsqueeze(0)
+            if self.args.is_cuda: done = done.cuda()
+        action = utils.to_tensor(action)
+        if self.args.is_cuda: action = action.cuda()
+        self.replay_buffer.push(state, action, next_state, reward, done)
 
     def evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -218,40 +228,14 @@ class Agent:
         # self.gen_frames = 0
         print("begin training")
         ####################### EVOLUTION #####################
-        # all_fitness = []
-        #Evaluate genomes/individuals
-        # replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
-        # experiences_id = ray.put(replay_buffer)
-        # thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
-        # theta_ids = [ray.put(ddpg.Actor(self.args).state_dict()) for _ in range(self.args.pop_size)]
-        # thetas = [ddpg.Actor(self.args).state_dict() for _ in range(self.args.pop_size)]
-
-        # theta_id = ray.put(thetas)[0]
-        # exit(0)
-
-        # assert len(self.workers) == len(thetas)
-        # theta_id = ray.put(ddpg.Actor(self.args).state_dict())
-        # while True:
-
-        # set_num_id = self.workers[0].set_gen_frames.remote(0)
-        # set_num = ray.get(set_num_id)
         for worker in self.workers: worker.set_gen_frames.remote(0)
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         gen_nums = ray.get(get_num_ids)
         print("gen_nums:{0}".format(gen_nums))
-
-
-
         evaluate_ids = [worker.evaluate.remote(self.pop[key], self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
 
-        # evaluate_ids = [worker.evaluate.remote(key, self.args.num_evals) for key, worker in enumerate(self.workers)]
-
-        # evaluate_ids = [worker.evaluate.remote(thetas) for worker, theta in zip(self.workers, thetas)]
-        # print("evluatat_ids:{}".format(evaluate_ids))
-
-        # return results based on its order
         results_ea = ray.get(evaluate_ids)
         print("results:{}".format(results_ea))
         print("replay memory lenght:",len(results_ea[0][0]))
