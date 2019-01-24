@@ -90,9 +90,9 @@ class Worker(object):
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
 
         # init ea pop
-        self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
-        for i in range(args.pop_size):
-            self.pop[i].eval()
+        # self.pop = dict([(key, ddpg.Actor(args))for key in range(args.pop_size)])
+        # for i in range(args.pop_size):
+        #     self.pop[i].eval()
 
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
         # Details omitted.
@@ -176,6 +176,9 @@ class Agent:
         self.pop = []
         for _ in range(args.pop_size):
             self.pop.append(ddpg.Actor(args))
+
+        for actor in self.pop: actor.eval()
+
         self.workers = [Worker.remote(args) for _ in range(self.args.pop_size+1)]
 
         # args.is_cuda = True; args.is_memory_cuda = True
