@@ -35,7 +35,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = True; self.is_memory_cuda = True
+        self.is_cuda = False; self.is_memory_cuda = False
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=2)
+@ray.remote
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -174,6 +174,8 @@ class Agent:
         for _ in range(args.pop_size):
             self.pop.append(ddpg.Actor(args))
         self.workers = [Worker.remote(args) for _ in range(self.args.pop_size+1)]
+
+        args.is_cuda = True; args.is_memory_cuda = True
         self.rl_agent = ddpg.DDPG(args)
         # self.ounoise = ddpg.OUNoise(args.action_dim)
 
@@ -238,6 +240,9 @@ class Agent:
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         gen_nums = ray.get(get_num_ids)
         print("gen_nums:{0}".format(gen_nums))
+
+
+
         evaluate_ids = [worker.evaluate.remote(self.pop[key], self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
 
@@ -275,7 +280,10 @@ class Agent:
         print("elite_index:{}".format(elite_index))
         # exit(0)
 
+
+
         ###################### DDPG #########################
+
         result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
         result_rl = ray.get(result_rl_id)
         print("len of results_rl,", len(result_rl[0]))
@@ -288,13 +296,15 @@ class Agent:
             self.len_replay = self.len_replay + len(results_ea[i][0])
 
         # DDPG learning step
+        # self.rl_agent
         if self.len_replay > self.args.batch_size * 5:
             for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
                 sample_choose = np.random.randint(self.args.pop_size+1)
                 transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
                 batch = replay_memory.Transition(*zip(*transitions))
                 self.rl_agent.update_parameters(batch)
-            # exit(0)
+
+            exit(0)
             # Synch RL Agent to NE
             if self.num_games % self.args.synch_period == 0:
                 self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
@@ -302,7 +312,6 @@ class Agent:
                 print('Synch from RL --> Nevo')
 
         print(best_train_fitness, test_score, elite_index)
-
         return best_train_fitness, test_score, elite_index
 
 
