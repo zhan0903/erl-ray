@@ -177,7 +177,7 @@ class Agent:
 
         args.is_cuda = True; args.is_memory_cuda = True
         self.rl_agent = ddpg.DDPG(args)
-        # self.ounoise = ddpg.OUNoise(args.action_dim)
+        self.ounoise = ddpg.OUNoise(args.action_dim)
 
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0;self.len_replay = 0
 
