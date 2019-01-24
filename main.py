@@ -285,7 +285,7 @@ class Agent:
 
         result_rl = self.evaluate(self.rl_agent.actor, is_action_noise=True)
 
-        print("len of results_rl,", len(result_rl[0]))
+        print("len of results_rl,", len(result_rl))
 
         results_ea.append(result_rl)
         exit(0)
