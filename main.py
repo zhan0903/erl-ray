@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=2)
+@ray.remote(num_gpus=2,num_cpus=24)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -142,7 +142,7 @@ class Worker(object):
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
-        # if self.args.is_cuda: state = state.cuda()
+        if self.args.is_cuda: state = state.cuda()
         done = False
 
         while not done:
@@ -154,6 +154,7 @@ class Worker(object):
             if is_action_noise: action += self.ounoise.noise()
 
             next_state, reward, done, info = self.env.step(action.flatten())  # Simulate one step in environment
+            # print()
             next_state = utils.to_tensor(next_state).unsqueeze(0)
             if self.args.is_cuda:
                 next_state = next_state.cuda()
@@ -261,6 +262,8 @@ class Agent:
         # elite_index_id = self.workers[0].epoch.remote(all_fitness)
         # elite_index = ray.get(elite_index_id)
         print("elite_index:{}".format(elite_index))
+
+        exit(0)
         # exit(0)
 
         ###################### DDPG #########################
