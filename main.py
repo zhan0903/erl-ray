@@ -188,7 +188,7 @@ class Agent:
         for target_param, param in zip(evo_net.parameters(), rl_net.parameters()):
             target_param.data.copy_(param.data)
 
-    def evaluate(self, net, is_render, is_action_noise=False, store_transition=True):
+    def evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
