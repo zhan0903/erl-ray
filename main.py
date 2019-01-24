@@ -235,6 +235,7 @@ class Agent:
         print("after set_gen_frames")
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
+        print("after get_gen_frames")
 
         gen_nums = ray.get(get_num_ids)
         print("gen_nums:{0}".format(gen_nums))
