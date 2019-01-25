@@ -139,7 +139,7 @@ class Worker(object):
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
         # print("come here in evaluate")
-        return self.replay_buffer, fitness / num_evals,self.num_frames,self.gen_frames
+        return self.replay_buffer, fitness / num_evals,self.num_frames,self.gen_frames,self.num_games
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -288,15 +288,15 @@ class Agent:
 
         results_ea.append(result_rl)
 
-        gen_frames = 0; num_games = 0; len_replay = 0;
-        # exit(0)
+        gen_frames = 0; num_games = 0; len_replay = 0;num_frames = 0
 
         for i in range(self.args.pop_size+1):
             gen_frames = gen_frames+results_ea[i][3]
-            num_games = num_games+results_ea[i][2]
+            num_frames = num_frames+results_ea[i][2]
             len_replay = len_replay + len(results_ea[i][0])
+            num_games = num_games+results_ea[i][4]
 
-        self.num_games = num_games;self.len_replay = len_replay;self.gen_frames = gen_frames
+        self.num_frames = num_frames;self.len_replay = len_replay;self.gen_frames = gen_frames;self.num_games = num_games
 
         # DDPG learning step
         # self.rl_agent

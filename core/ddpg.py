@@ -125,7 +125,6 @@ class DDPG(object):
         self.actor.is_cuda = value
         pass
 
-
     def update_parameters(self, batch):
         state_batch = torch.cat(batch.state)
         next_state_batch = torch.cat(batch.next_state)
