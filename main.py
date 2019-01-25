@@ -73,7 +73,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=2)
+@ray.remote
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -248,10 +248,9 @@ class Agent:
         # print("gen_nums:{0}".format(gen_nums))
         evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
-
         results_ea = ray.get(evaluate_ids)
         print("results:{}".format(results_ea))
-        print("replay memory lenght:",len(results_ea[0][0]))
+        # print("replay memory lenght:",len(results_ea[0][0]))
         exit(0)
 
         all_fitness = []
