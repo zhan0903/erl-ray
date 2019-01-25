@@ -234,8 +234,8 @@ class Agent:
         # self.gen_frames = 0
         print("begin training")
         ####################### EVOLUTION #####################
-        for worker in self.workers: worker.set_gen_frames.remote(0)
-        print("after set_gen_frames")
+        # for worker in self.workers: worker.set_gen_frames.remote(0)
+        # print("after set_gen_frames")
 
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         print("after get_gen_frames")
