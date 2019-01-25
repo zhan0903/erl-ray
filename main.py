@@ -280,7 +280,7 @@ class Agent:
         # exit(0)
 
         ###################### DDPG #########################
-        result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor, is_action_noise=True) #Train
+        result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor.state_dict(), is_action_noise=True) #Train
         result_rl = ray.get(result_rl_id)
 
         # result_rl = self.evaluate(self.rl_agent.actor, is_action_noise=True)
