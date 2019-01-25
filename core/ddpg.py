@@ -35,6 +35,7 @@ class Actor(nn.Module):
 
         #Hidden Layer 2
         self.w_l2 = nn.Linear(l1, l2)
+        self.w_l2 = nn.DataParallel(self.w_l2)
         if self.args.use_ln: self.lnorm2 = LayerNorm(l2)
 
         #Out
@@ -76,6 +77,7 @@ class Critic(nn.Module):
 
         #Hidden Layer 2
         self.w_l2 = nn.Linear(2*l1, l2)
+        self.w_l2 = nn.DataParallel(self.w_l2)
         if self.args.use_ln: self.lnorm2 = LayerNorm(l2)
 
         #Out
