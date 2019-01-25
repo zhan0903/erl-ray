@@ -166,7 +166,7 @@ class Worker(object):
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
         if store_transition: self.num_games += 1
-        print("come here,total_reward:",total_reward)
+        # print("come here,total_reward:",total_reward)
         return total_reward
 
 
@@ -276,7 +276,7 @@ class Agent:
         # elite_index = ray.get(elite_index_id)
         print("elite_index:{}".format(elite_index))
 
-        exit(0)
+        # exit(0)
         # exit(0)
 
         ###################### DDPG #########################
