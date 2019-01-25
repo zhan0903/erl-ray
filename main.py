@@ -244,7 +244,7 @@ class Agent:
         # print("after get_gen_frames")
         #
         # print("gen_nums:{0}".format(gen_nums))
-        evaluate_ids = [worker.evaluate.remote(self.pop[key], self.args.num_evals)
+        evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
 
         results_ea = ray.get(evaluate_ids)
@@ -263,7 +263,7 @@ class Agent:
         champ_index = all_fitness.index(max(all_fitness))
         print("champ_index:",champ_index)
 
-        test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index], 5, store_transition=False)
+        test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5, store_transition=False)
         test_score = ray.get(test_score_id)[1]
         print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
 
