@@ -131,9 +131,11 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, net, num_evals=1, is_action_noise=False, store_transition=True):
+    def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
         fitness = 0.0
-        print("pop[key][w_out].bias:{0}".format(net.state_dict()["w_out.bias"]))
+        print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
+        net = ddpg.Actor(self.args)
+        net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
         return self.replay_buffer,fitness / num_evals,self.num_frames,self.gen_frames
