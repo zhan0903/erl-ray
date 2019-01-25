@@ -23,7 +23,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
-logger.setLevel(level=logging.DEBUG)
+logger.setLevel(level=logging.INFO)
 
 
 class Parameters:
@@ -133,7 +133,7 @@ class Worker(object):
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
         fitness = 0.0
-        print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
+        # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
         net = ddpg.Actor(self.args)
         net.load_state_dict(model)
         for _ in range(num_evals):
@@ -249,7 +249,7 @@ class Agent:
         evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
         results_ea = ray.get(evaluate_ids)
-        print("results:{}".format(results_ea))
+        logger.debug("results:{}".format(results_ea))
         # print("replay memory lenght:",len(results_ea[0][0]))
         # exit(0)
 
@@ -258,13 +258,13 @@ class Agent:
         for i in range(self.args.pop_size):
             all_fitness.append(results_ea[i][1])
 
-        logger.debug("fitness:",all_fitness)
+        logger.debug("fitness:{}".format(all_fitness))
         best_train_fitness = max(all_fitness)
         worst_index = all_fitness.index(min(all_fitness))
 
         #Validation test
         champ_index = all_fitness.index(max(all_fitness))
-        logger.debug("champ_index:",champ_index)
+        logger.debug("champ_index:{}".format(champ_index))
 
         test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5, store_transition=False)
         test_score = ray.get(test_score_id)[1]
@@ -285,7 +285,7 @@ class Agent:
 
         # result_rl = self.evaluate(self.rl_agent.actor, is_action_noise=True)
 
-        logger.debug("results_rl,", result_rl)
+        logger.debug("results_rl:{}".format(result_rl))
 
         results_ea.append(result_rl)
         # exit(0)
@@ -311,7 +311,6 @@ class Agent:
                 self.evolver.rl_policy = worst_index
                 print('Synch from RL --> Nevo')
 
-        print(best_train_fitness, test_score, elite_index)
         return best_train_fitness, test_score, elite_index
 
 
