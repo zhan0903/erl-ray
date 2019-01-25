@@ -243,9 +243,8 @@ class Agent:
         # print("after get_gen_frames")
         #
         gen_nums = ray.get(get_num_ids)
-        print("after get_gen_frames")
-        #
-        # print("gen_nums:{0}".format(gen_nums))
+
+        print("gen_nums:{0}".format(gen_nums))
         evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
         results_ea = ray.get(evaluate_ids)
