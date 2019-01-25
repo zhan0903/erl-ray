@@ -236,7 +236,7 @@ class Agent:
         # self.gen_frames = 0
         print("begin training")
         ####################### EVOLUTION #####################
-        # for worker in self.workers: worker.set_gen_frames.remote(0)
+        for worker in self.workers: worker.set_gen_frames.remote(0)
         # print("after set_gen_frames")
 
         # get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
@@ -288,12 +288,16 @@ class Agent:
         logger.debug("results_rl:{}".format(result_rl))
 
         results_ea.append(result_rl)
+
+        gen_frames = 0; num_games = 0; len_replay = 0;
         # exit(0)
 
         for i in range(self.args.pop_size+1):
-            self.gen_frames = self.gen_frames+results_ea[i][3]
-            self.num_games = self.num_games+results_ea[i][2]
-            self.len_replay = self.len_replay + len(results_ea[i][0])
+            gen_frames = gen_frames+results_ea[i][3]
+            num_games = num_games+results_ea[i][2]
+            len_replay = len_replay + len(results_ea[i][0])
+
+        self.num_games = num_games;self.len_replay = len_replay;self.gen_frames = gen_frames
 
         # DDPG learning step
         # self.rl_agent
@@ -342,6 +346,7 @@ if __name__ == "__main__":
                                                              '%.2f' % (agent.evolver.selection_stats['selected'] / agent.evolver.selection_stats['total']),
                                                               '%.2f' % (agent.evolver.selection_stats['discarded'] / agent.evolver.selection_stats['total']))
 
+        # log experiment result
         tracker.update([erl_score], agent.num_games)
         frame_tracker.update([erl_score], agent.num_frames)
         time_tracker.update([erl_score], time.time()-time_start)
