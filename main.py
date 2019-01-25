@@ -258,23 +258,23 @@ class Agent:
         for i in range(self.args.pop_size):
             all_fitness.append(results_ea[i][1])
 
-        print("fitness:",all_fitness)
+        logger.debug("fitness:",all_fitness)
         best_train_fitness = max(all_fitness)
         worst_index = all_fitness.index(min(all_fitness))
 
         #Validation test
         champ_index = all_fitness.index(max(all_fitness))
-        print("champ_index:",champ_index)
+        logger.debug("champ_index:",champ_index)
 
         test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5, store_transition=False)
         test_score = ray.get(test_score_id)[1]
-        print("test_score:{0},champ_index:{1}".format(test_score, champ_index))
+        logger.debug("test_score:{0},champ_index:{1}".format(test_score, champ_index))
 
         # NeuroEvolution's probabilistic selection and recombination step
         elite_index = self.evolver.epoch(self.pop, all_fitness)
         # elite_index_id = self.workers[0].epoch.remote(all_fitness)
         # elite_index = ray.get(elite_index_id)
-        print("elite_index:{}".format(elite_index))
+        logger.debug("elite_index:{}".format(elite_index))
 
         # exit(0)
         # exit(0)
@@ -285,7 +285,7 @@ class Agent:
 
         # result_rl = self.evaluate(self.rl_agent.actor, is_action_noise=True)
 
-        print("results_rl,", result_rl)
+        logger.debug("results_rl,", result_rl)
 
         results_ea.append(result_rl)
         # exit(0)
@@ -304,7 +304,7 @@ class Agent:
                 batch = replay_memory.Transition(*zip(*transitions))
                 self.rl_agent.update_parameters(batch)
 
-            exit(0)
+            # exit(0)
             # Synch RL Agent to NE
             if self.num_games % self.args.synch_period == 0:
                 self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
