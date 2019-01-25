@@ -35,7 +35,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = True; self.is_memory_cuda = True
+        self.is_cuda = False; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -139,7 +139,7 @@ class Worker(object):
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
         print("come here in evaluate")
-        return self.replay_buffer,fitness / num_evals,self.num_frames,self.gen_frames
+        return self.replay_buffer, fitness / num_evals,self.num_frames,self.gen_frames
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
