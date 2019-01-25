@@ -138,7 +138,7 @@ class Worker(object):
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        print("come here in evaluate")
+        # print("come here in evaluate")
         return self.replay_buffer, fitness / num_evals,self.num_frames,self.gen_frames
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
@@ -251,7 +251,7 @@ class Agent:
         results_ea = ray.get(evaluate_ids)
         print("results:{}".format(results_ea))
         # print("replay memory lenght:",len(results_ea[0][0]))
-        exit(0)
+        # exit(0)
 
         all_fitness = []
 
