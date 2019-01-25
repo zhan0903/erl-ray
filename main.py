@@ -165,6 +165,7 @@ class Worker(object):
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
         if store_transition: self.num_games += 1
+        print("come here")
         return total_reward
 
 
@@ -250,6 +251,8 @@ class Agent:
         results_ea = ray.get(evaluate_ids)
         print("results:{}".format(results_ea))
         print("replay memory lenght:",len(results_ea[0][0]))
+        exit(0)
+
         all_fitness = []
 
         for i in range(self.args.pop_size):
