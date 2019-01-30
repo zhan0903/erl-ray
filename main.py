@@ -164,6 +164,8 @@ class Worker(object):
                 next_state = next_state.cuda()
             total_reward += reward
 
+            print("sdfasdfadfsf")
+
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
         if store_transition: self.num_games += 1
