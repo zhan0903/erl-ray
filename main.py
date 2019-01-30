@@ -10,6 +10,7 @@ import time
 import logging
 import copy
 import ray
+import threading,queue
 
 
 render = False
@@ -35,7 +36,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = True
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -278,6 +279,8 @@ class Agent:
         # exit(0)
         # exit(0)
 
+        exit(0)
+
         ###################### DDPG #########################
         result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor.state_dict(), is_action_noise=True) #Train
         result_rl = ray.get(result_rl_id)
@@ -296,7 +299,7 @@ class Agent:
             len_replay = len_replay + len(results_ea[i][0])
             num_games = num_games+results_ea[i][4]
 
-        self.num_frames = num_frames;self.len_replay = len_replay;self.gen_frames = gen_frames;self.num_games = num_games
+        self.num_frames = num_frames; self.len_replay = len_replay; self.gen_frames = gen_frames; self.num_games = num_games
 
         # DDPG learning step
         # self.rl_agent
@@ -315,6 +318,50 @@ class Agent:
                 print('Synch from RL --> Nevo')
 
         return best_train_fitness, test_score, elite_index
+
+
+class LearnerThread(threading.Thread):
+    """Background thread that updates the local model from replay data.
+    The learner thread communicates with the main thread through Queues. This
+    is needed since Ray operations can only be run on the main thread. In
+    addition, moving heavyweight gradient ops session runs off the main thread
+    improves overall throughput.
+    """
+
+    def __init__(self, local_evaluator, ddpg):
+        threading.Thread.__init__(self)
+        self.learner_queue_size = WindowStat("size", 50)
+        self.local_evaluator = local_evaluator
+        self.inqueue = queue.Queue(maxsize=LEARNER_QUEUE_MAX_SIZE)
+        self.outqueue = queue.Queue()
+        self.queue_timer = TimerStat()
+        self.grad_timer = TimerStat()
+        self.daemon = True
+        self.weights_updated = False
+        self.stopped = False
+        self.stats = {}
+
+    def run(self):
+        while not self.stopped:
+            self.step()
+
+    def step(self):
+        with self.queue_timer:
+            ra, replay = self.inqueue.get()
+        if replay is not None:
+            batch = replay.Transition(*zip(*transitions))
+            prio_dict = {}
+            with self.grad_timer:
+                grad_out = self.local_evaluator.compute_apply(replay)
+                for pid, info in grad_out.items():
+                    prio_dict[pid] = (
+                        replay.policy_batches[pid].data.get("batch_indexes"),
+                        info.get("td_error"))
+                    if "stats" in info:
+                        self.stats[pid] = info["stats"]
+            self.outqueue.put((ra, prio_dict, replay.count))
+        self.learner_queue_size.push(self.inqueue.qsize())
+        self.weights_updated = True
 
 
 if __name__ == "__main__":

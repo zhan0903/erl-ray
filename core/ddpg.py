@@ -11,6 +11,7 @@ import logging
 import numpy as np
 import torch.nn as nn
 # from ray.rllib.models.pytorch.model import TorchModel
+import threading
 
 def soft_update(target, source, tau):
     for target_param, param in zip(target.parameters(), source.parameters()):
@@ -104,6 +105,49 @@ class Critic(nn.Module):
         return out
 
 
+class LearnerThread(threading.Thread):
+    """Background thread that updates the local model from replay data.
+    The learner thread communicates with the main thread through Queues. This
+    is needed since Ray operations can only be run on the main thread. In
+    addition, moving heavyweight gradient ops session runs off the main thread
+    improves overall throughput.
+    """
+
+    def __init__(self, local_evaluator):
+        threading.Thread.__init__(self)
+        self.learner_queue_size = WindowStat("size", 50)
+        self.local_evaluator = local_evaluator
+        self.inqueue = queue.Queue(maxsize=LEARNER_QUEUE_MAX_SIZE)
+        self.outqueue = queue.Queue()
+        self.queue_timer = TimerStat()
+        self.grad_timer = TimerStat()
+        self.daemon = True
+        self.weights_updated = False
+        self.stopped = False
+        self.stats = {}
+
+    def run(self):
+        while not self.stopped:
+            self.step()
+
+    def step(self):
+        with self.queue_timer:
+            ra, replay = self.inqueue.get()
+        if replay is not None:
+            prio_dict = {}
+            with self.grad_timer:
+                grad_out = self.local_evaluator.compute_apply(replay)
+                for pid, info in grad_out.items():
+                    prio_dict[pid] = (
+                        replay.policy_batches[pid].data.get("batch_indexes"),
+                        info.get("td_error"))
+                    if "stats" in info:
+                        self.stats[pid] = info["stats"]
+            self.outqueue.put((ra, prio_dict, replay.count))
+        self.learner_queue_size.push(self.inqueue.qsize())
+        self.weights_updated = True
+
+
 class DDPG(object):
     def __init__(self, args):
         self.args = args
@@ -121,7 +165,7 @@ class DDPG(object):
         hard_update(self.actor_target, self.actor)  # Make sure target is with the same weight
         hard_update(self.critic_target, self.critic)
 
-    def set_cuda(self,value):
+    def set_cuda(self, value):
         self.actor.is_cuda = value
         pass
 
@@ -142,7 +186,7 @@ class DDPG(object):
         #Critic Update
         next_action_batch = self.actor_target.forward(next_state_batch)
         next_q = self.critic_target.forward(next_state_batch, next_action_batch)
-        if self.args.use_done_mask: next_q = next_q * ( 1 - done_batch.float()) #Done mask
+        if self.args.use_done_mask: next_q = next_q * (1 - done_batch.float()) #Done mask
         target_q = reward_batch + (self.gamma * next_q)
 
         self.critic_optim.zero_grad()
