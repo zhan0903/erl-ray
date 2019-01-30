@@ -252,6 +252,7 @@ class Agent:
         logger.debug("results:{}".format(results_ea))
         # print("replay memory lenght:",len(results_ea[0][0]))
         # exit(0)
+        print("come here")
 
         all_fitness = []
 
