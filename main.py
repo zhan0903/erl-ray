@@ -133,6 +133,7 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
+        print("come evaluate")
         fitness = 0.0
         # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
         net = ddpg.Actor(self.args)
