@@ -74,7 +74,7 @@ class Parameters:
 original = False
 
 
-@ray.remote
+@ray.remote(num_gpus=1)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
