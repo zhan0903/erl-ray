@@ -136,6 +136,8 @@ class Worker(object):
         fitness = 0.0
         # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
         net = ddpg.Actor(self.args)
+
+        print("asdfasafdasdf+++++")
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
