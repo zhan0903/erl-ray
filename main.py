@@ -149,6 +149,8 @@ class Worker(object):
         if self.args.is_cuda: state = state.cuda()
         done = False
 
+        print("asdfasdfasdfasf____")
+
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
             if render and is_render: self.env.render()
