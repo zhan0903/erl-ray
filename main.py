@@ -137,6 +137,7 @@ class Worker(object):
         print("come evaluate")
         fitness = 0.0
         # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
+        print(torch.cuda.is_available())
         net = ddpg.Actor(self.args)
 
         print("asdfasafdasdf+++++")
@@ -244,8 +245,6 @@ class Agent:
     def train(self):
         # self.gen_frames = 0
         print("begin training")
-
-        print(torch.cuda.is_available())
 
         ####################### EVOLUTION #####################
         for worker in self.workers: worker.set_gen_frames.remote(0)
