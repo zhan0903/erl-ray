@@ -242,6 +242,9 @@ class Agent:
     def train(self):
         # self.gen_frames = 0
         print("begin training")
+
+        print(torch.cuda.is_available())
+
         ####################### EVOLUTION #####################
         for worker in self.workers: worker.set_gen_frames.remote(0)
         # print("after set_gen_frames")
