@@ -88,6 +88,13 @@ class Worker(object):
         return self.gen_frames
 
     def test(self,input):
+        fitness = 0.0
+        # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
+        # print(torch.cuda.is_available())
+        net = Actor(self.args)
+
+        # print("asdfasafdasdf+++++")
+        net.load_state_dict(input)
         print("come here")
 
     def get_gen_num(self):
