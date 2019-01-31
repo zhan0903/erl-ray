@@ -2,6 +2,7 @@ import ray
 import numpy as np
 import torch
 import torch.nn as nn
+from ray.rllib.utils.timer import TimerStat
 
 
 class Actor(nn.Module):
@@ -118,6 +119,7 @@ if __name__ == "__main__":
     ray.init()
     args = Parameters()
     pop = []
+    test_timer = TimerStat()
     for _ in range(args.pop_size):
         pop.append(Actor(args))
 
@@ -127,8 +129,9 @@ if __name__ == "__main__":
     print(gen_nums)
     num_evals = 2
 
-    evaluate_ids = [worker.test.remote(pop[key].state_dict(),num_evals)
+    with test_timer:
+        evaluate_ids = [worker.test.remote(pop[key].state_dict(), num_evals)
                     for key, worker in enumerate(workers)]
-
-    results_ea = ray.get(evaluate_ids)
+        results_ea = ray.get(evaluate_ids)
     print("results:{}".format(results_ea))
+    print("test_timer:{}".format(test_timer))
