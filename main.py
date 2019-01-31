@@ -293,6 +293,7 @@ class Agent:
         test = sum(results_ea)
 
         logger.debug("test:{0},results_ea:{1}".format(test, results_ea))
+        exit(0)
 
 
         for i in range(self.args.pop_size+1):
