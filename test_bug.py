@@ -96,6 +96,7 @@ class Worker(object):
 
         # print("asdfasafdasdf+++++")
         net.load_state_dict(input)
+        print(num_evals)
         print("come here")
 
     def get_gen_num(self):
@@ -124,7 +125,7 @@ if __name__ == "__main__":
     get_num_ids = [worker.get_gen_num.remote() for worker in workers]
     gen_nums = ray.get(get_num_ids)
     print(gen_nums)
-    num_evals = 1
+    num_evals = 2
 
     evaluate_ids = [worker.test.remote(pop[key].state_dict(),num_evals)
                     for key, worker in enumerate(workers)]
