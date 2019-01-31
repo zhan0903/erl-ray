@@ -134,4 +134,4 @@ if __name__ == "__main__":
                     for key, worker in enumerate(workers)]
         results_ea = ray.get(evaluate_ids)
     print("results:{}".format(results_ea))
-    print("test_timer:{}".format(test_timer))
+    print("test_timer:{}".format(test_timer.mean()))
