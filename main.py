@@ -74,7 +74,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.1)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -393,6 +393,8 @@ if __name__ == "__main__":
 
     #Create Agent
     ray.init()
+    print(torch.cuda.device_count())
+
     agent = Agent(parameters, env)
     print('Running', env_tag, ' State_dim:', parameters.state_dim, ' Action_dim:', parameters.action_dim)
 
