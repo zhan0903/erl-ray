@@ -1,7 +1,7 @@
 import ray
 
 
-@ray.remote(num_gpus=2)
+@ray.remote(num_gpus=0.1)
 class Worker(object):
     def __init__(self, args):
         self.args = args
@@ -19,11 +19,11 @@ class Parameters:
     def __init__(self):
         self.is_cuda = False;
         self.is_memory_cuda = True
-        self.pop_size = 1
+        self.pop_size = 10
 
 
 if __name__ == "__main__":
-    ray.init(num_gpus=2)
+    ray.init()
     args = Parameters()
     workers = [Worker.remote(args) for _ in range(args.pop_size)]
     get_num_ids = [worker.get_gen_num.remote() for worker in workers]
