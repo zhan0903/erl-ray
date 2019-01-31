@@ -290,20 +290,22 @@ class Agent:
         results_ea.append(result_rl)
 
         gen_frames = 0; num_games = 0; len_replay = 0;num_frames = 0
-        test = np.sum(results_ea,axis=0)
+        sum_results = np.sum(results_ea, axis=0)
         # test = sum(results_ea)
+        # fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
 
-        logger.debug("test:{0},results_ea:{1}".format(test, results_ea))
+        logger.debug("test:{0},results_ea:{1}".format(sum_results, results_ea))
+        # exit(0)
+
+
+        # for i in range(self.args.pop_size+1):
+        #     gen_frames = gen_frames+results_ea[i][3]
+        #     num_frames = num_frames+results_ea[i][2]
+        #     len_replay = len_replay + len(results_ea[i][0])
+        #     num_games = num_games+results_ea[i][4]
+
+        self.num_frames = sum_results[1]; self.gen_frames = sum_results[2]; self.num_games = sum_results[3]
         exit(0)
-
-
-        for i in range(self.args.pop_size+1):
-            gen_frames = gen_frames+results_ea[i][3]
-            num_frames = num_frames+results_ea[i][2]
-            len_replay = len_replay + len(results_ea[i][0])
-            num_games = num_games+results_ea[i][4]
-
-        self.num_frames = num_frames; self.len_replay = len_replay; self.gen_frames = gen_frames; self.num_games = num_games
 
         # DDPG learning step
         # self.rl_agent
