@@ -36,7 +36,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = True
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -137,18 +137,13 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
-        # print("come evaluate")
         fitness = 0.0
-        # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
-        # print(torch.cuda.is_available())
-        net = ddpg.Actor(self.args)
 
-        # print("asdfasafdasdf+++++")
+        net = ddpg.Actor(self.args)
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        # print("come here in evaluate")
-        return fitness / num_evals,self.num_frames,self.gen_frames,self.num_games
+        return fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -156,8 +151,6 @@ class Worker(object):
         state = utils.to_tensor(state).unsqueeze(0)
         if self.args.is_cuda: state = state.cuda()
         done = False
-
-        # print("asdfasdfasdfasf____")
 
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
@@ -173,8 +166,6 @@ class Worker(object):
             if self.args.is_cuda:
                 next_state = next_state.cuda()
             total_reward += reward
-
-            # print("sdfasdfadfsf")
 
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
@@ -250,12 +241,7 @@ class Agent:
         print("begin training")
 
         ####################### EVOLUTION #####################
-        # for worker in self.workers: worker.set_gen_frames.remote(0)
-        # print("after set_gen_frames")
-
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
-        # print("after get_gen_frames")
-        #
         gen_nums = ray.get(get_num_ids)
 
         print("gen_nums:{0}".format(gen_nums))
@@ -266,7 +252,6 @@ class Agent:
         # print("replay memory lenght:",len(results_ea[0][0]))
         exit(0)
         print("come here")
-
 
         all_fitness = []
 
