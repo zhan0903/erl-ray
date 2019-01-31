@@ -134,13 +134,13 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
-        print("come evaluate")
+        # print("come evaluate")
         fitness = 0.0
         # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
         print(torch.cuda.is_available())
         net = ddpg.Actor(self.args)
 
-        print("asdfasafdasdf+++++")
+        # print("asdfasafdasdf+++++")
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
@@ -154,7 +154,7 @@ class Worker(object):
         if self.args.is_cuda: state = state.cuda()
         done = False
 
-        print("asdfasdfasdfasf____")
+        # print("asdfasdfasdfasf____")
 
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
@@ -171,7 +171,7 @@ class Worker(object):
                 next_state = next_state.cuda()
             total_reward += reward
 
-            print("sdfasdfadfsf")
+            # print("sdfasdfadfsf")
 
             if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
