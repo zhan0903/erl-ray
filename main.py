@@ -294,7 +294,7 @@ class Agent:
         # test = sum(results_ea)
         # fitness / num_evals, len(relay_buff), self.num_frames, self.gen_frames, self.num_games
 
-        logger.debug("test:{0},results_ea:{1}".format(sum_results, results_ea))
+        # logger.debug("test:{0},results_ea:{1}".format(sum_results, results_ea))
 
         self.len_replay = sum_results[1]
         self.num_frames = sum_results[2]
