@@ -123,6 +123,9 @@ class Worker(object):
     def epoch(self, all_fitness):
         return self.evolver.epoch(self.pop, all_fitness)
 
+    def sample(self):
+
+
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
         if self.args.is_cuda: reward = reward.cuda()
@@ -145,7 +148,7 @@ class Worker(object):
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
         # print("come here in evaluate")
-        return self.replay_buffer, fitness / num_evals,self.num_frames,self.gen_frames,self.num_games
+        return fitness / num_evals,self.num_frames,self.gen_frames,self.num_games
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
