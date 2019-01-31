@@ -142,7 +142,7 @@ class Worker(object):
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        return fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
+        return fitness / num_evals, len(self.replay_buffer),self.num_frames, self.gen_frames, self.num_games
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -289,30 +289,26 @@ class Agent:
 
         results_ea.append(result_rl)
 
-        gen_frames = 0; num_games = 0; len_replay = 0;num_frames = 0
+        # gen_frames = 0; num_games = 0; len_replay = 0;num_frames = 0
         sum_results = np.sum(results_ea, axis=0)
         # test = sum(results_ea)
-        # fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
+        # fitness / num_evals, len(relay_buff), self.num_frames, self.gen_frames, self.num_games
 
         logger.debug("test:{0},results_ea:{1}".format(sum_results, results_ea))
-        # exit(0)
 
-
-        # for i in range(self.args.pop_size+1):
-        #     gen_frames = gen_frames+results_ea[i][3]
-        #     num_frames = num_frames+results_ea[i][2]
-        #     len_replay = len_replay + len(results_ea[i][0])
-        #     num_games = num_games+results_ea[i][4]
-
-        self.num_frames = sum_results[1]; self.gen_frames = sum_results[2]; self.num_games = sum_results[3]
-        exit(0)
+        self.len_replay = sum_results[1]
+        self.num_frames = sum_results[2]
+        self.gen_frames = sum_results[3]
+        self.num_games = sum_results[4]
 
         # DDPG learning step
         # self.rl_agent
         if self.len_replay > self.args.batch_size * 5:
             for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
                 sample_choose = np.random.randint(self.args.pop_size+1)
-                transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
+                transitions_id = self.workers[sample_choose].sample.remote(self.args.batch_size)
+                transitions = ray.get(transitions_id)
+                # transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
                 batch = replay_memory.Transition(*zip(*transitions))
                 self.rl_agent.update_parameters(batch)
 
