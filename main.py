@@ -11,6 +11,7 @@ import logging
 import copy
 import ray
 import threading,queue
+from ray.rllib.utils.timer import TimerStat
 
 
 render = False
@@ -303,20 +304,25 @@ class Agent:
 
         # DDPG learning step
         # self.rl_agent
-        if self.len_replay > self.args.batch_size * 5:
-            for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
-                sample_choose = np.random.randint(self.args.pop_size+1)
-                transitions_id = self.workers[sample_choose].sample.remote(self.args.batch_size)
-                transitions = ray.get(transitions_id)
-                # transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
-                batch = replay_memory.Transition(*zip(*transitions))
-                self.rl_agent.update_parameters(batch)
 
-            # Synch RL Agent to NE
-            if self.num_games % self.args.synch_period == 0:
-                self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
-                self.evolver.rl_policy = worst_index
-                print('Synch from RL --> Nevo')
+        test_timer = TimerStat()
+        with test_timer:
+            if self.len_replay > self.args.batch_size * 5:
+                for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
+                    sample_choose = np.random.randint(self.args.pop_size+1)
+                    transitions_id = self.workers[sample_choose].sample.remote(self.args.batch_size)
+                    transitions = ray.get(transitions_id)
+                    # transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
+                    batch = replay_memory.Transition(*zip(*transitions))
+                    self.rl_agent.update_parameters(batch)
+
+                # Synch RL Agent to NE
+                if self.num_games % self.args.synch_period == 0:
+                    self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
+                    self.evolver.rl_policy = worst_index
+                    print('Synch from RL --> Nevo')
+
+        print("test_timer:{}".format(test_timer.mean))
 
         return best_train_fitness, test_score, elite_index
 
