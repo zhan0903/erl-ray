@@ -1,7 +1,7 @@
 import ray
 
 
-@ray.remote(num_gpus=1,num_cpus=2)
+@ray.remote(num_gpus=1)
 class Worker(object):
     def __init__(self, args):
         self.args = args
@@ -19,7 +19,7 @@ class Parameters:
     def __init__(self):
         self.is_cuda = False;
         self.is_memory_cuda = True
-        self.pop_size = 1
+        self.pop_size = 2
 
 
 if __name__ == "__main__":
