@@ -74,7 +74,7 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=0.09)
+@ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
@@ -137,7 +137,7 @@ class Worker(object):
         # print("come evaluate")
         fitness = 0.0
         # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
-        print(torch.cuda.is_available())
+        # print(torch.cuda.is_available())
         net = ddpg.Actor(self.args)
 
         # print("asdfasafdasdf+++++")
@@ -261,8 +261,9 @@ class Agent:
         results_ea = ray.get(evaluate_ids)
         logger.debug("results:{}".format(results_ea))
         # print("replay memory lenght:",len(results_ea[0][0]))
-        # exit(0)
+        exit(0)
         print("come here")
+
 
         all_fitness = []
 
