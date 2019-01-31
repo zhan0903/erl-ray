@@ -138,7 +138,6 @@ class Worker(object):
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
         fitness = 0.0
-
         net = ddpg.Actor(self.args)
         net.load_state_dict(model)
         for _ in range(num_evals):
@@ -250,13 +249,14 @@ class Agent:
         results_ea = ray.get(evaluate_ids)
         logger.debug("results:{}".format(results_ea))
         # print("replay memory lenght:",len(results_ea[0][0]))
-        exit(0)
-        print("come here")
+        # exit(0)
+
+        # fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
 
         all_fitness = []
 
         for i in range(self.args.pop_size):
-            all_fitness.append(results_ea[i][1])
+            all_fitness.append(results_ea[i][0])
 
         logger.debug("fitness:{}".format(all_fitness))
         best_train_fitness = max(all_fitness)
@@ -267,7 +267,7 @@ class Agent:
         logger.debug("champ_index:{}".format(champ_index))
 
         test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5, store_transition=False)
-        test_score = ray.get(test_score_id)[1]
+        test_score = ray.get(test_score_id)[0]
         logger.debug("test_score:{0},champ_index:{1}".format(test_score, champ_index))
 
         # NeuroEvolution's probabilistic selection and recombination step
@@ -276,8 +276,6 @@ class Agent:
         # elite_index = ray.get(elite_index_id)
         logger.debug("elite_index:{}".format(elite_index))
 
-        # exit(0)
-        # exit(0)
 
         exit(0)
 
@@ -310,7 +308,6 @@ class Agent:
                 batch = replay_memory.Transition(*zip(*transitions))
                 self.rl_agent.update_parameters(batch)
 
-            # exit(0)
             # Synch RL Agent to NE
             if self.num_games % self.args.synch_period == 0:
                 self.rl_to_evo(self.rl_agent.actor, self.pop[worst_index])
@@ -327,7 +324,6 @@ class LearnerThread(threading.Thread):
     addition, moving heavyweight gradient ops session runs off the main thread
     improves overall throughput.
     """
-
     def __init__(self, local_evaluator, ddpg):
         threading.Thread.__init__(self)
         self.learner_queue_size = WindowStat("size", 50)
@@ -369,6 +365,9 @@ if __name__ == "__main__":
     tracker = utils.Tracker(parameters, ['erl'], '_score.csv')  # Initiate tracker
     frame_tracker = utils.Tracker(parameters, ['frame_erl'], '_score.csv')  # Initiate tracker
     time_tracker = utils.Tracker(parameters, ['time_erl'], '_score.csv')
+
+    learner = LearnerThread(self.local_evaluator)
+    learner.start()
 
     #Create Env
     env = utils.NormalizedActions(gym.make(env_tag))
