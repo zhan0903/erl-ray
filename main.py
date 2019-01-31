@@ -36,7 +36,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = True
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -74,14 +74,14 @@ class Parameters:
 original = False
 
 
-@ray.remote(num_gpus=1)
+@ray.remote(num_gpus=0.09)
 class Worker(object):
     def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
         # self.policy = ddpg.Actor(args)
         self.env = utils.NormalizedActions(gym.make(env_tag))
         self.args = args
-        self.args.is_cuda = True
+        # self.args.is_cuda = True
         self.evolver = utils_ne.SSNE(self.args)
         # self.replay_buffer = replay_buff
 
