@@ -123,8 +123,8 @@ class Worker(object):
     def epoch(self, all_fitness):
         return self.evolver.epoch(self.pop, all_fitness)
 
-    def sample(self):
-
+    def sample(self, batch):
+        return self.replay_buffer.sample(batch)
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
