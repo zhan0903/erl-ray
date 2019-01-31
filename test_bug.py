@@ -117,7 +117,7 @@ if __name__ == "__main__":
     gen_nums = ray.get(get_num_ids)
     print(gen_nums)
 
-    evaluate_ids = [worker.test.remote(pop[key].state_dict(), args.num_evals)
+    evaluate_ids = [worker.test.remote(pop[key].state_dict())
                     for key, worker in enumerate(workers)]
 
     results_ea = ray.get(evaluate_ids)
