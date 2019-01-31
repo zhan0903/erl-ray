@@ -366,8 +366,8 @@ if __name__ == "__main__":
     frame_tracker = utils.Tracker(parameters, ['frame_erl'], '_score.csv')  # Initiate tracker
     time_tracker = utils.Tracker(parameters, ['time_erl'], '_score.csv')
 
-    learner = LearnerThread(self.local_evaluator)
-    learner.start()
+    # learner = LearnerThread(self.local_evaluator)
+    # learner.start()
 
     #Create Env
     env = utils.NormalizedActions(gym.make(env_tag))
