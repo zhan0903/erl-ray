@@ -26,7 +26,7 @@ if __name__ == "__main__":
     ray.init()
     args = Parameters()
     workers = [Worker.remote(args) for _ in range(args.pop_size)]
-    for worker in workers: worker.set_gen_frames.remote(0)
+    # for worker in workers: worker.set_gen_frames.remote(0)
     get_num_ids = [worker.get_gen_num.remote() for worker in workers]
     gen_nums = ray.get(get_num_ids)
     print(gen_nums)
