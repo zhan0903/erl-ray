@@ -102,6 +102,7 @@ class Parameters:
         self.state_dim = 8
         self.action_dim = 2
         self.use_ln = True
+        self.num_evals = 1
 
 
 if __name__ == "__main__":
