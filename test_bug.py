@@ -99,6 +99,8 @@ class Parameters:
         self.is_cuda = False;
         self.is_memory_cuda = True
         self.pop_size = 10
+        self.state_dim = 12;
+        self.action_dim = None
 
 
 if __name__ == "__main__":

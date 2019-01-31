@@ -390,6 +390,8 @@ if __name__ == "__main__":
     parameters.action_dim = env.action_space.shape[0]
     parameters.state_dim = env.observation_space.shape[0]
 
+    logger.debug("action_dim:{0},parameters.state_dim:{1}".format(parameters.action_dim,parameters.state_dim))
+
     #Seed
     env.seed(parameters.seed);
     torch.manual_seed(parameters.seed); np.random.seed(parameters.seed); random.seed(parameters.seed)
