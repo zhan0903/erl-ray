@@ -277,7 +277,7 @@ class Agent:
         logger.debug("elite_index:{}".format(elite_index))
 
 
-        exit(0)
+        # exit(0)
 
         ###################### DDPG #########################
         result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor.state_dict(), is_action_noise=True) #Train
@@ -290,6 +290,10 @@ class Agent:
         results_ea.append(result_rl)
 
         gen_frames = 0; num_games = 0; len_replay = 0;num_frames = 0
+        test = sum(results_ea)
+
+        logger.debug("test:{0},results_ea:{1}".format(test, results_ea))
+
 
         for i in range(self.args.pop_size+1):
             gen_frames = gen_frames+results_ea[i][3]
