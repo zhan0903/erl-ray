@@ -97,8 +97,8 @@ class Worker(object):
 
         # print("asdfasafdasdf+++++")
         net.load_state_dict(input)
-        print(num_evals)
-        print("come here")
+        # print(num_evals)
+        # print("come here")
 
     def get_gen_num(self):
         return self.gen_frames
@@ -134,4 +134,4 @@ if __name__ == "__main__":
                     for key, worker in enumerate(workers)]
         results_ea = ray.get(evaluate_ids)
     print("results:{}".format(results_ea))
-    print("test_timer:{}".format(test_timer.mean()))
+    print("test_timer:{}".format(test_timer._total_time))
