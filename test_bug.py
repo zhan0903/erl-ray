@@ -101,6 +101,7 @@ class Parameters:
         self.pop_size = 10
         self.state_dim = 8
         self.action_dim = 2
+        self.use_ln = True
 
 
 if __name__ == "__main__":
