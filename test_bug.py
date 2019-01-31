@@ -1,7 +1,7 @@
 import ray
 
 
-@ray.remote(num_gpus=1)
+@ray.remote(num_gpus=1,num_cpus=2)
 class Worker(object):
     def __init__(self, args):
         self.args = args
