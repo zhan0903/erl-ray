@@ -87,7 +87,8 @@ class Worker(object):
         self.gen_frames = value
         return self.gen_frames
 
-    def test(self,input):
+    def test(self,input,num_evals = 1):
+        self.num_evals = num_evals
         fitness = 0.0
         # print("pop[key][w_out].bias:{0}".format(model["w_out.bias"]))
         # print(torch.cuda.is_available())
@@ -123,8 +124,9 @@ if __name__ == "__main__":
     get_num_ids = [worker.get_gen_num.remote() for worker in workers]
     gen_nums = ray.get(get_num_ids)
     print(gen_nums)
+    num_evals = 1
 
-    evaluate_ids = [worker.test.remote(pop[key].state_dict())
+    evaluate_ids = [worker.test.remote(pop[key].state_dict(),num_evals)
                     for key, worker in enumerate(workers)]
 
     results_ea = ray.get(evaluate_ids)
