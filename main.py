@@ -396,7 +396,7 @@ if __name__ == "__main__":
 
     #Create Agent
     ray.init()
-    print(torch.cuda.device_count())
+    # print(torch.cuda.device_count())
 
     agent = Agent(parameters, env)
     print('Running', env_tag, ' State_dim:', parameters.state_dim, ' Action_dim:', parameters.action_dim)
