@@ -23,6 +23,7 @@ class Parameters:
 
 
 if __name__ == "__main__":
+    ray.init()
     args = Parameters()
     workers = [Worker.remote(args) for _ in range(args.pop_size + 1)]
     for worker in workers: worker.set_gen_frames.remote(0)
