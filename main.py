@@ -142,7 +142,7 @@ class Worker(object):
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        return np.array(fitness / num_evals, self.num_frames, self.gen_frames, self.num_games)
+        return fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -290,7 +290,8 @@ class Agent:
         results_ea.append(result_rl)
 
         gen_frames = 0; num_games = 0; len_replay = 0;num_frames = 0
-        test = sum(results_ea)
+        test = np.sum(results_ea,axis=0)
+        # test = sum(results_ea)
 
         logger.debug("test:{0},results_ea:{1}".format(test, results_ea))
         exit(0)
