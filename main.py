@@ -139,12 +139,13 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
+        print(self.args.is_cuda)
         fitness = 0.0
         net = ddpg.Actor(self.args)
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        return fitness / num_evals, len(self.replay_buffer),self.num_frames, self.gen_frames, self.num_games
+        return fitness/num_evals, len(self.replay_buffer), self.num_frames, self.gen_frames, self.num_games
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
