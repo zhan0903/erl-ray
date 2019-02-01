@@ -53,13 +53,13 @@ class Actor(nn.Module):
 
     def forward(self, input):
         #Hidden Layer 1
-        print(input)
         out = self.w_l1(input)
         if self.args.use_ln: out = self.lnorm1(out)
         out = torch.tanh(out)
 
         #Hidden Layer 2
         out = self.w_l2(out)
+        print(out)
         if self.args.use_ln: out = self.lnorm2(out)
         out = torch.tanh(out)
 
