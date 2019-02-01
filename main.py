@@ -25,7 +25,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
-logger.setLevel(level=logging.INFO)
+logger.setLevel(level=logging.DEBUG)
 
 
 class Parameters:
@@ -321,6 +321,7 @@ class Agent:
         # print("test_timer:{}".format(test_timer.mean))
         #
         # exit(0)
+        print("gen_frames:{}".format(gen_nums))
 
         with test_timer:
             if self.len_replay > self.args.batch_size * 5:
