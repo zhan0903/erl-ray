@@ -126,7 +126,7 @@ class Worker(object):
 
     def sample(self, batch):
         # print(self.replay_buffer.sample(batch))
-        return self.replay_buffer.sample(batch).cpu()
+        return self.replay_buffer.sample(batch)
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -150,7 +150,9 @@ class Worker(object):
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
-        if self.args.is_cuda: state = state.cuda()
+        if self.args.is_cuda:
+            print("cuda!!!!!")
+            state = state.cuda()
         done = False
 
         while not done:
