@@ -25,7 +25,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
-logger.setLevel(level=logging.DEBUG)
+logger.setLevel(level=logging.INFO)
 
 
 class Parameters:
@@ -139,7 +139,6 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
-        # print(self.args.is_cuda)
         fitness = 0.0
         net = ddpg.Actor(self.args)
         net.load_state_dict(model)
@@ -152,7 +151,6 @@ class Worker(object):
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
         if self.args.is_cuda:
-            print("cuda!!!!!")
             state = state.cuda()
         done = False
 
@@ -245,6 +243,8 @@ class Agent:
     def train(self):
         # self.gen_frames = 0
         print("begin training")
+        # get_num_ids = [worker.set_gen_frames.remote(0) for worker in self.workers]
+        for worker in self.workers: worker.set_gen_frames.remote(0)
 
         ####################### EVOLUTION #####################
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
@@ -310,17 +310,17 @@ class Agent:
 
 
         # exit(0)
-        print("before ddpg")
+        # print("before ddpg")
 
         test_timer = TimerStat()
-        with test_timer:
-            transitions_id = self.workers[0].sample.remote(self.args.batch_size)
-            transitions = ray.get(transitions_id)
-            batch = replay_memory.Transition(*zip(*transitions))
-            self.rl_agent.update_parameters(batch)
-        print("test_timer:{}".format(test_timer.mean))
-
-        exit(0)
+        # with test_timer:
+        #     transitions_id = self.workers[0].sample.remote(self.args.batch_size)
+        #     transitions = ray.get(transitions_id)
+        #     batch = replay_memory.Transition(*zip(*transitions))
+        #     self.rl_agent.update_parameters(batch)
+        # print("test_timer:{}".format(test_timer.mean))
+        #
+        # exit(0)
 
         with test_timer:
             if self.len_replay > self.args.batch_size * 5:
