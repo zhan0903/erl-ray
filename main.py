@@ -139,7 +139,7 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
-        print(self.args.is_cuda)
+        # print(self.args.is_cuda)
         fitness = 0.0
         net = ddpg.Actor(self.args)
         net.load_state_dict(model)
