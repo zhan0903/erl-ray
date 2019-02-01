@@ -321,7 +321,7 @@ class Agent:
         # print("test_timer:{}".format(test_timer.mean))
         #
         # exit(0)
-        print("gen_frames:{}".format(gen_nums))
+        print("gen_frames:{}".format(self.gen_frames))
 
         with test_timer:
             if self.len_replay > self.args.batch_size * 5:
