@@ -249,7 +249,6 @@ class Agent:
                         for key, worker in enumerate(self.workers[:-1])]
         results_ea = ray.get(evaluate_ids)
         logger.debug("results:{}".format(results_ea))
-        # print("replay memory lenght:",len(results_ea[0][0]))
         # exit(0)
 
         # fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
@@ -275,7 +274,7 @@ class Agent:
         elite_index = self.evolver.epoch(self.pop, all_fitness)
         # elite_index_id = self.workers[0].epoch.remote(all_fitness)
         # elite_index = ray.get(elite_index_id)
-        logger.debug("elite_index:{}".format(elite_index))
+        # logger.debug("elite_index:{}".format(elite_index))
 
 
         # exit(0)
@@ -284,10 +283,7 @@ class Agent:
         result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor.state_dict(), is_action_noise=True) #Train
         result_rl = ray.get(result_rl_id)
 
-        # result_rl = self.evaluate(self.rl_agent.actor, is_action_noise=True)
-
         logger.debug("results_rl:{}".format(result_rl))
-
         results_ea.append(result_rl)
 
         # gen_frames = 0; num_games = 0; len_replay = 0;num_frames = 0
@@ -305,7 +301,21 @@ class Agent:
         # DDPG learning step
         # self.rl_agent
 
+
+
+        # exit(0)
+        print("before ddpg")
+
         test_timer = TimerStat()
+        with test_timer:
+            transitions_id = self.workers[0].sample.remote(self.args.batch_size)
+            transitions = ray.get(transitions_id)
+            batch = replay_memory.Transition(*zip(*transitions))
+            self.rl_agent.update_parameters(batch)
+        print("test_timer:{}".format(test_timer.mean))
+
+        exit(0)
+
         with test_timer:
             if self.len_replay > self.args.batch_size * 5:
                 for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
