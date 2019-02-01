@@ -159,6 +159,8 @@ class Worker(object):
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
             if render and is_render: self.env.render()
+            print(state)
+            exit(0)
             action = net.forward(state)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
