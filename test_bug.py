@@ -106,7 +106,7 @@ class Worker(object):
 
 class Parameters:
     def __init__(self):
-        self.is_cuda = False
+        self.is_cuda = True
         self.is_memory_cuda = True
         self.pop_size = 10
         self.state_dim = 8
