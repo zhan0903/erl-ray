@@ -36,7 +36,7 @@ class Actor(nn.Module):
 
         #Hidden Layer 2
         self.w_l2 = nn.Linear(l1, l2)
-        self.w_l2 = nn.DataParallel(self.w_l2)
+        # self.w_l2 = nn.DataParallel(self.w_l2)
         if self.args.use_ln: self.lnorm2 = LayerNorm(l2)
 
         #Out
@@ -48,7 +48,6 @@ class Actor(nn.Module):
             self.w_out.bias.data.mul_(0.1)
 
         if args.is_cuda:
-            print("cuda")
             self.cuda()
 
     def forward(self, input):
@@ -59,7 +58,6 @@ class Actor(nn.Module):
 
         #Hidden Layer 2
         out = self.w_l2(out)
-        print(out)
         if self.args.use_ln: out = self.lnorm2(out)
         out = torch.tanh(out)
 
