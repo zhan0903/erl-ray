@@ -11,7 +11,7 @@ import logging
 import copy
 import ray
 import threading,queue
-# from ray.rllib.utils.timer import TimerStat
+from ray.rllib.utils.timer import TimerStat
 
 
 render = False
