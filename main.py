@@ -196,7 +196,7 @@ class Agent:
         # args.is_cuda = True; args.is_memory_cuda = True
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
-        self.learner = LearnerThread()
+        # self.learner = LearnerThread()
         # self.learner.start()
         self.learning_started = False
 
