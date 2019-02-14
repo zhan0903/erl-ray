@@ -11,7 +11,7 @@ import logging
 import copy
 import ray
 import threading,queue
-from ray.rllib.utils.timer import TimerStat
+# from ray.rllib.utils.timer import TimerStat
 
 
 render = False
@@ -44,7 +44,7 @@ class Parameters:
         else: self.synch_period = 10
 
         #DDPG params
-        self.use_ln = True # True
+        self.use_ln = True  # True
         self.gamma = 0.99; self.tau = 0.001
         self.seed = 7
         self.batch_size = 128
@@ -144,7 +144,9 @@ class Worker(object):
         net.load_state_dict(model)
         for _ in range(num_evals):
             fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        return fitness/num_evals, len(self.replay_buffer), self.num_frames, self.gen_frames, self.num_games
+        return fitness/num_evals, len(self.replay_buffer), \
+               self.num_frames, self.gen_frames, \
+               self.num_games, self.replay_buffer
 
     def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -194,6 +196,18 @@ class Agent:
         # args.is_cuda = True; args.is_memory_cuda = True
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
+        self.learner = LearnerThread()
+        # self.learner.start()
+        self.learning_started = False
+
+        # Stats
+        self.timers = {
+            k: TimerStat()
+            for k in [
+            "put_weights", "get_samples", "sample_processing",
+            "replay_processing", "update_priorities", "train", "sample"
+        ]
+        }
 
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0; self.len_replay = 0
 
@@ -250,14 +264,20 @@ class Agent:
         get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         gen_nums = ray.get(get_num_ids)
 
+        ##### get new experiences
         print("gen_nums:{0}".format(gen_nums))
         evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
         results_ea = ray.get(evaluate_ids)
-        logger.debug("results:{}".format(results_ea))
-        # exit(0)
+        with self.timers["replay_processing"]:
+            if self.learner.inqueue.full():
+                self.num_smaples_dropped += 1
+            else:
+                with self.timers["get_samples"]:
+                    samples = ray.get(replay)
+                self.learner.inqueue.put()
 
-        # fitness / num_evals, self.num_frames, self.gen_frames, self.num_games
+        logger.debug("results:{}".format(results_ea))
 
         all_fitness = []
 
@@ -278,13 +298,6 @@ class Agent:
 
         # NeuroEvolution's probabilistic selection and recombination step
         elite_index = self.evolver.epoch(self.pop, all_fitness)
-        # elite_index_id = self.workers[0].epoch.remote(all_fitness)
-        # elite_index = ray.get(elite_index_id)
-        # logger.debug("elite_index:{}".format(elite_index))
-
-
-        # exit(0)
-
         ###################### DDPG #########################
         result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor.state_dict(), is_action_noise=True) #Train
         result_rl = ray.get(result_rl_id)
@@ -304,23 +317,7 @@ class Agent:
         self.gen_frames = sum_results[3]
         self.num_games = sum_results[4]
 
-        # DDPG learning step
-        # self.rl_agent
-
-
-
-        # exit(0)
-        # print("before ddpg")
-
         test_timer = TimerStat()
-        # with test_timer:
-        #     transitions_id = self.workers[0].sample.remote(self.args.batch_size)
-        #     transitions = ray.get(transitions_id)
-        #     batch = replay_memory.Transition(*zip(*transitions))
-        #     self.rl_agent.update_parameters(batch)
-        # print("test_timer:{}".format(test_timer.mean))
-        #
-        # exit(0)
         print("gen_frames:{}".format(self.gen_frames))
 
         with test_timer:
@@ -357,8 +354,8 @@ class LearnerThread(threading.Thread):
         self.local_evaluator = local_evaluator
         self.inqueue = queue.Queue(maxsize=LEARNER_QUEUE_MAX_SIZE)
         self.outqueue = queue.Queue()
-        self.queue_timer = TimerStat()
-        self.grad_timer = TimerStat()
+        # self.queue_timer = TimerStat()
+        # self.grad_timer = TimerStat()
         self.daemon = True
         self.weights_updated = False
         self.stopped = False
@@ -369,19 +366,19 @@ class LearnerThread(threading.Thread):
             self.step()
 
     def step(self):
-        with self.queue_timer:
-            ra, replay = self.inqueue.get()
+        # with self.queue_timer:
+        ra, replay = self.inqueue.get()
         if replay is not None:
             batch = replay.Transition(*zip(*transitions))
             prio_dict = {}
-            with self.grad_timer:
-                grad_out = self.local_evaluator.compute_apply(replay)
-                for pid, info in grad_out.items():
-                    prio_dict[pid] = (
-                        replay.policy_batches[pid].data.get("batch_indexes"),
-                        info.get("td_error"))
-                    if "stats" in info:
-                        self.stats[pid] = info["stats"]
+            # with self.grad_timer:
+            grad_out = self.local_evaluator.compute_apply(replay)
+            for pid, info in grad_out.items():
+                prio_dict[pid] = (
+                    replay.policy_batches[pid].data.get("batch_indexes"),
+                    info.get("td_error"))
+                if "stats" in info:
+                    self.stats[pid] = info["stats"]
             self.outqueue.put((ra, prio_dict, replay.count))
         self.learner_queue_size.push(self.inqueue.qsize())
         self.weights_updated = True
@@ -432,8 +429,6 @@ if __name__ == "__main__":
             next_save += 100
             if elite_index != None: torch.save(agent.pop[elite_index].state_dict(), parameters.save_foldername + 'evo_net')
             print("Progress Saved")
-
-        # exit(0)
 
 
 
