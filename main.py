@@ -405,7 +405,7 @@ if __name__ == "__main__":
     torch.manual_seed(parameters.seed); np.random.seed(parameters.seed); random.seed(parameters.seed)
 
     #Create Agent
-    ray.init(num_cpus=10,include_webui=False,ignore_reinit_error=True)
+    ray.init(include_webui=False,ignore_reinit_error=True)
     # print(torch.cuda.device_count())
 
     agent = Agent(parameters, env)
