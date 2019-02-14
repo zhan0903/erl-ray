@@ -269,13 +269,13 @@ class Agent:
         evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals)
                         for key, worker in enumerate(self.workers[:-1])]
         results_ea = ray.get(evaluate_ids)
-        with self.timers["replay_processing"]:
-            if self.learner.inqueue.full():
-                self.num_smaples_dropped += 1
-            else:
-                with self.timers["get_samples"]:
-                    samples = ray.get(replay)
-                self.learner.inqueue.put()
+        # with self.timers["replay_processing"]:
+        #     if self.learner.inqueue.full():
+        #         self.num_smaples_dropped += 1
+        #     else:
+        #         with self.timers["get_samples"]:
+        #             samples = ray.get(replay)
+        #         self.learner.inqueue.put()
 
         logger.debug("results:{}".format(results_ea))
 
