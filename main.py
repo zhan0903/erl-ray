@@ -128,9 +128,9 @@ class Worker(object):
                 self.rl_agent.update_parameters(batch)
 
             # self.gen_frames = 0
-            return self.rl_agent.actor
+            return self.rl_agent.actor.state_dict()
 
-    def add_experience(self, state, action, next_state, reward, done, replay_memroy):
+    def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
         if self.args.is_cuda: reward = reward.cuda()
         if self.args.use_done_mask:
@@ -138,19 +138,19 @@ class Worker(object):
             if self.args.is_cuda: done = done.cuda()
         action = utils.to_tensor(action)
         if self.args.is_cuda: action = action.cuda()
-        replay_memroy.push(state, action, next_state, reward, done)
+        self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, model, num_evals, replay_memory, is_action_noise=False, store_transition=True):
+    def evaluate(self, model, is_action_noise=False, store_transition=True):
         fitness = 0.0
         net = ddpg.Actor(self.args)
         net.load_state_dict(model)
-        for _ in range(num_evals):
-            fitness += self._evaluate(net, replay_memory, is_action_noise=is_action_noise, store_transition=store_transition)
-        return fitness/num_evals, len(replay_memory), \
+        for _ in range(self.args.num_evals):
+            fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
+        return fitness/self.args.num_evals, len(self.replay_buffer), \
                self.num_frames, self.gen_frames, \
                self.num_games
 
-    def _evaluate(self, net, replay_memory, is_render=False, is_action_noise=False, store_transition=True):
+    def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
@@ -175,7 +175,7 @@ class Worker(object):
                 next_state = next_state.cuda()
             total_reward += reward
 
-            if store_transition: self.add_experience(state, action, next_state, reward, done,replay_memory)
+            if store_transition: self.add_experience(state, action, next_state, reward, done)
             state = next_state
         if store_transition: self.num_games += 1
         # print("come here,total_reward:",total_reward)
