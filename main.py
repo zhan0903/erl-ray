@@ -229,7 +229,7 @@ class Agent:
             results_ea = ray.get(evaluate_ids)
         print("evaluate_timer:{}".format(evaluate_timer.mean))
 
-        get_gen_num_ids = [worker.get_gen_num.remote() for key, worker in self.workers]
+        get_gen_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         print(ray.get(get_gen_num_ids))
 
 
