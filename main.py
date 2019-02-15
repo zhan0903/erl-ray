@@ -64,7 +64,7 @@ class Parameters:
         elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
         else: self.elite_fraction = 0.1
 
-        self.pop_size = 10
+        self.pop_size = 1
         self.crossover_prob = 0.0
         self.mutation_prob = 0.9
 
@@ -88,8 +88,6 @@ class Worker(object):
         # self.replay_buffer = replay_buff
 
         self.rl_agent = ddpg.DDPG(args)
-        # init rl agent
-        # self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
         # self.policy.eval()
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
@@ -231,7 +229,7 @@ class Agent:
         get_gen_num_ids = [worker.get_gen_frames.remote() for worker in self.workers]
         print(ray.get(get_gen_num_ids))
 
-        [worker.reset_gen_frames.remote() for worker in self.workers]
+        # [worker.reset_gen_frames.remote() for worker in self.workers]
 
         ddpg_timer = TimerStat()
         with ddpg_timer:
