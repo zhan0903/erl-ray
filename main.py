@@ -311,7 +311,6 @@ class Agent:
         sum_results = np.sum(results_ea, axis=0)
         # test = sum(results_ea)
         # fitness / num_evals, len(relay_buff), self.num_frames, self.gen_frames, self.num_games
-
         # logger.debug("test:{0},results_ea:{1}".format(sum_results, results_ea))
 
         self.len_replay = sum_results[1]
@@ -321,7 +320,8 @@ class Agent:
 
         test_timer = TimerStat()
         print("gen_frames:{}".format(self.gen_frames))
-        print(len(ray.get(replay_buffer_id)))
+        print(len(replay_buffer))
+        print(len(ray.get(replay_buffer)))
 
         exit(0)
 
