@@ -64,7 +64,7 @@ class Parameters:
         elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
         else: self.elite_fraction = 0.1
 
-        self.pop_size = 1
+        self.pop_size = 10
         self.crossover_prob = 0.0
         self.mutation_prob = 0.9
 
@@ -101,6 +101,9 @@ class Worker(object):
 
     def reset_gen_frames(self):
         self.gen_frames = 0
+
+    def set_weight(self):
+        pass
 
     def get_gen_frames(self):
         return self.gen_frames
