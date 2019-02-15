@@ -229,9 +229,13 @@ class Agent:
             results_ea = ray.get(evaluate_ids)
         print("evaluate_timer:{}".format(evaluate_timer.mean))
 
+        get_gen_num_ids = [worker.get_gen_num.remote() for key, worker in self.workers]
+        print(ray.get(get_gen_num_ids))
+
+
         ddpg_timer = TimerStat()
         with ddpg_timer:
-            ddpg_ids = [worker.ddpg_learning.remote() for key, worker in enumerate(self.workers)]
+            ddpg_ids = [worker.ddpg_learning.remote() for worker in self.workers]
             results_ddpg = ray.get(ddpg_ids)
         print("ddpg_timer:{}".format(ddpg_timer.mean))
 
