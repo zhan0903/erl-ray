@@ -97,7 +97,6 @@ class Critic(nn.Module):
 
         # Output interface
         out = self.w_out(out)
-
         return out
 
 
