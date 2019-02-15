@@ -250,7 +250,7 @@ class Agent:
             results_ddpg = ray.get(ddpg_ids)
         print("ddpg_timer:{}".format(ddpg_timer.mean))
 
-        print(results_ddpg)
+        print(len(results_ddpg))
 
         exit(0)
 
