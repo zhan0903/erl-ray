@@ -78,7 +78,7 @@ original = False
 
 @ray.remote(num_gpus=0.1)
 class Worker(object):
-    def __init__(self, args,actor):
+    def __init__(self, args):
         # self.env = env_creator(config["env_config"]) # Initialize environment.
         # self.policy = ddpg.Actor(args)
         self.env = utils.NormalizedActions(gym.make(env_tag))
@@ -86,6 +86,8 @@ class Worker(object):
         # self.args.is_cuda = True
         self.evolver = utils_ne.SSNE(self.args)
         # self.replay_buffer = replay_buff
+
+        self.pop = ddpg.Actor(args)
 
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
@@ -141,17 +143,17 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def evaluate(self, model, is_action_noise=False, store_transition=True):
+    def evaluate(self, is_action_noise=False, store_transition=True):
         fitness = 0.0
-        net = ddpg.Actor(self.args)
-        net.load_state_dict(model)
+        # net = ddpg.Actor(self.args)
+        # net.load_state_dict(model)
         for _ in range(self.args.num_evals):
-            fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
+            fitness += self._evaluate(is_action_noise=is_action_noise, store_transition=store_transition)
         return fitness/self.args.num_evals, len(self.replay_buffer), \
                self.num_frames, self.gen_frames, \
                self.num_games
 
-    def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
+    def _evaluate(self, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
@@ -164,7 +166,7 @@ class Worker(object):
             if render and is_render: self.env.render()
             # print(state)
             # exit(0)
-            action = net.forward(state)
+            action = self.pop.forward(state)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
@@ -224,7 +226,7 @@ class Agent:
     def train(self):
         evaluate_timer = TimerStat()
         with evaluate_timer:
-            evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict())
+            evaluate_ids = [worker.evaluate.remote()
                             for key, worker in enumerate(self.workers)]
             results_ea = ray.get(evaluate_ids)
         print("evaluate_timer:{}".format(evaluate_timer.mean))
