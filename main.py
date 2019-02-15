@@ -222,21 +222,6 @@ class Agent:
             target_param.data.copy_(param.data)
 
     def train(self):
-        # self.gen_frames = 0
-        # replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
-        # replay_buffer_id = ray.put(replay_buffer)
-
-        print("begin training")
-        # get_num_ids = [worker.set_gen_frames.remote(0) for worker in self.workers]
-        # for worker in self.workers: worker.set_gen_frames.remote(0)
-
-        ####################### EVOLUTION #####################
-        # get_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
-        # gen_nums = ray.get(get_num_ids)
-
-        ##### get new experiences
-        # print("gen_nums:{0}".format(gen_nums))
-
         evaluate_timer = TimerStat()
         with evaluate_timer:
             evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict())
@@ -307,49 +292,6 @@ class Agent:
         # print("test_timer:{}".format(test_timer.mean))
 
         return best_train_fitness, test_score, elite_index
-
-
-class LearnerThread(threading.Thread):
-    """Background thread that updates the local model from replay data.
-    The learner thread communicates with the main thread through Queues. This
-    is needed since Ray operations can only be run on the main thread. In
-    addition, moving heavyweight gradient ops session runs off the main thread
-    improves overall throughput.
-    """
-    def __init__(self, local_evaluator, ddpg):
-        threading.Thread.__init__(self)
-        self.learner_queue_size = WindowStat("size", 50)
-        self.local_evaluator = local_evaluator
-        self.inqueue = queue.Queue(maxsize=LEARNER_QUEUE_MAX_SIZE)
-        self.outqueue = queue.Queue()
-        # self.queue_timer = TimerStat()
-        # self.grad_timer = TimerStat()
-        self.daemon = True
-        self.weights_updated = False
-        self.stopped = False
-        self.stats = {}
-
-    def run(self):
-        while not self.stopped:
-            self.step()
-
-    def step(self):
-        # with self.queue_timer:
-        ra, replay = self.inqueue.get()
-        if replay is not None:
-            batch = replay.Transition(*zip(*transitions))
-            prio_dict = {}
-            # with self.grad_timer:
-            grad_out = self.local_evaluator.compute_apply(replay)
-            for pid, info in grad_out.items():
-                prio_dict[pid] = (
-                    replay.policy_batches[pid].data.get("batch_indexes"),
-                    info.get("td_error"))
-                if "stats" in info:
-                    self.stats[pid] = info["stats"]
-            self.outqueue.put((ra, prio_dict, replay.count))
-        self.learner_queue_size.push(self.inqueue.qsize())
-        self.weights_updated = True
 
 
 if __name__ == "__main__":
