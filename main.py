@@ -108,6 +108,7 @@ class Worker(object):
         return self.gen_frames
 
     def copy_to_gpus(self):
+        pass
 
 
     def ddpg_learning(self, worst_index):
