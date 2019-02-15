@@ -108,7 +108,8 @@ class Worker(object):
         return self.gen_frames
 
     def copy_to_gpus(self):
-        pass
+
+
 
 
     def ddpg_learning(self, worst_index):
@@ -150,7 +151,7 @@ class Worker(object):
             fitness += self._evaluate(net, replay_memory, is_action_noise=is_action_noise, store_transition=store_transition)
         return fitness/num_evals, len(replay_memory), \
                self.num_frames, self.gen_frames, \
-               self.num_games, replay_memory
+               self.num_games
 
     def _evaluate(self, net, replay_memory, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
