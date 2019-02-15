@@ -101,9 +101,8 @@ class Worker(object):
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
         # Details omitted.
 
-    def set_gen_frames(self, value):
-        self.gen_frames = value
-        return self.gen_frames
+    def reset_gen_frames(self):
+        self.gen_frames = 0
 
     def get_gen_num(self):
         return self.gen_frames
@@ -129,7 +128,7 @@ class Worker(object):
                 self.rl_agent.update_parameters(batch)
 
             # self.gen_frames = 0
-            return self.rl_agent.actor.state_dict()
+            return 1 #self.rl_agent.actor.state_dict()
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -232,6 +231,7 @@ class Agent:
         get_gen_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
         print(ray.get(get_gen_num_ids))
 
+        [worker.reset_gen_num.remote() for worker in self.workers]
 
         ddpg_timer = TimerStat()
         with ddpg_timer:
@@ -240,7 +240,7 @@ class Agent:
         print("ddpg_timer:{}".format(ddpg_timer.mean))
 
         print(len(results_ddpg))
-        time.sleep(10)
+        # time.sleep(10)
 
         exit(0)
 
