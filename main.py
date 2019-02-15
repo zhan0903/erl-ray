@@ -87,7 +87,7 @@ class Worker(object):
         self.evolver = utils_ne.SSNE(self.args)
         # self.replay_buffer = replay_buff
 
-        self.rl_agent = ddpg.DDPG(args, actor)
+        self.rl_agent = ddpg.DDPG(args)
         # init rl agent
         # self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
