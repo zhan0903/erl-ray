@@ -37,7 +37,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = True
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -300,14 +300,14 @@ class Agent:
         champ_index = all_fitness.index(max(all_fitness))
         logger.debug("champ_index:{}".format(champ_index))
 
-        test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5,replay_buffer_id, store_transition=False)
+        test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5, replay_buffer_id, store_transition=False)
         test_score = ray.get(test_score_id)[0]
         logger.debug("test_score:{0},champ_index:{1}".format(test_score, champ_index))
 
         # NeuroEvolution's probabilistic selection and recombination step
         elite_index = self.evolver.epoch(self.pop, all_fitness)
         ###################### DDPG #########################
-        result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor.state_dict(), is_action_noise=True) #Train
+        result_rl_id = self.workers[-1].evaluate.remote(self.rl_agent.actor.state_dict(), 1 ,replay_buffer_id, is_action_noise=True) #Train
         result_rl = ray.get(result_rl_id)
 
         logger.debug("results_rl:{}".format(result_rl))
