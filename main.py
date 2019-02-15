@@ -111,8 +111,6 @@ class Worker(object):
         pass
 
 
-
-
     def ddpg_learning(self, worst_index):
         # DDPG learning step
         if len(self.replay_buffer) > self.args.batch_size * 5:
@@ -276,16 +274,10 @@ class Agent:
         ##### get new experiences
         print("gen_nums:{0}".format(gen_nums))
 
-        evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals,replay_buffer_id)
+        evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals, replay_buffer_id)
                         for key, worker in enumerate(self.workers[:-1])]
         results_ea = ray.get(evaluate_ids)
-        # with self.timers["replay_processing"]:
-        #     if self.learner.inqueue.full():
-        #         self.num_smaples_dropped += 1
-        #     else:
-        #         with self.timers["get_samples"]:
-        #             samples = ray.get(replay)
-        #         self.learner.inqueue.put()
+
 
         logger.debug("results:{}".format(results_ea))
 
@@ -329,6 +321,7 @@ class Agent:
 
         test_timer = TimerStat()
         print("gen_frames:{}".format(self.gen_frames))
+        print(len(ray.get(replay_buffer_id)))
 
         exit(0)
 
