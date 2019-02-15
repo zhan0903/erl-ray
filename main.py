@@ -37,7 +37,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = True; self.is_memory_cuda = True
+        self.is_cuda = False; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -107,6 +107,9 @@ class Worker(object):
     def get_gen_num(self):
         return self.gen_frames
 
+    def copy_to_gpus(self):
+
+
     def ddpg_learning(self, worst_index):
         # DDPG learning step
         if len(self.replay_buffer) > self.args.batch_size * 5:
@@ -128,7 +131,7 @@ class Worker(object):
         # print(self.replay_buffer.sample(batch))
         return self.replay_buffer.sample(batch)
 
-    def add_experience(self, state, action, next_state, reward, done):
+    def add_experience(self, state, action, next_state, reward, done,replay_memroy):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
         if self.args.is_cuda: reward = reward.cuda()
         if self.args.use_done_mask:
@@ -136,19 +139,19 @@ class Worker(object):
             if self.args.is_cuda: done = done.cuda()
         action = utils.to_tensor(action)
         if self.args.is_cuda: action = action.cuda()
-        self.replay_buffer.push(state, action, next_state, reward, done)
+        replay_memroy.push(state, action, next_state, reward, done)
 
-    def evaluate(self, model, num_evals=1, is_action_noise=False, store_transition=True):
+    def evaluate(self, model, num_evals, replay_memory, is_action_noise=False, store_transition=True):
         fitness = 0.0
         net = ddpg.Actor(self.args)
         net.load_state_dict(model)
         for _ in range(num_evals):
-            fitness += self._evaluate(net, is_action_noise=is_action_noise, store_transition=store_transition)
-        return fitness/num_evals, len(self.replay_buffer), \
+            fitness += self._evaluate(net, replay_memory, is_action_noise=is_action_noise, store_transition=store_transition)
+        return fitness/num_evals, len(replay_memory), \
                self.num_frames, self.gen_frames, \
-               self.num_games, self.replay_buffer
+               self.num_games, replay_memory
 
-    def _evaluate(self, net, is_render=False, is_action_noise=False, store_transition=True):
+    def _evaluate(self, net, replay_memory, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
@@ -173,7 +176,7 @@ class Worker(object):
                 next_state = next_state.cuda()
             total_reward += reward
 
-            if store_transition: self.add_experience(state, action, next_state, reward, done)
+            if store_transition: self.add_experience(state, action, next_state, reward, done,replay_memory)
             state = next_state
         if store_transition: self.num_games += 1
         # print("come here,total_reward:",total_reward)
@@ -256,6 +259,9 @@ class Agent:
 
     def train(self):
         # self.gen_frames = 0
+        replay_buffer = replay_memory.ReplayMemory(self.args.buffer_size)
+        replay_buffer_id = ray.put(replay_buffer)
+
         print("begin training")
         # get_num_ids = [worker.set_gen_frames.remote(0) for worker in self.workers]
         for worker in self.workers: worker.set_gen_frames.remote(0)
@@ -266,7 +272,8 @@ class Agent:
 
         ##### get new experiences
         print("gen_nums:{0}".format(gen_nums))
-        evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals)
+
+        evaluate_ids = [worker.evaluate.remote(self.pop[key].state_dict(), self.args.num_evals,replay_buffer_id)
                         for key, worker in enumerate(self.workers[:-1])]
         results_ea = ray.get(evaluate_ids)
         # with self.timers["replay_processing"]:
@@ -319,6 +326,8 @@ class Agent:
 
         test_timer = TimerStat()
         print("gen_frames:{}".format(self.gen_frames))
+
+        exit(0)
 
         with test_timer:
             if self.len_replay > self.args.batch_size * 5:
