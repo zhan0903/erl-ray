@@ -196,7 +196,7 @@ class Agent:
 
         # for actor in self.pop: actor.eval()
 
-        self.workers = [Worker.remote(args, actor) for actor in self.pop]
+        self.workers = [Worker.remote(args) for _ in range(args.pop_size)]
 
         # args.is_cuda = True; args.is_memory_cuda = True
         # self.rl_agent = ddpg.DDPG(args)
