@@ -120,9 +120,9 @@ class Worker(object):
     def ddpg_learning(self):
         if len(self.replay_buffer) > self.args.batch_size * 5:
             for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
-                sample_choose = np.random.randint(self.args.pop_size + 1)
-                transitions_id = self.workers[sample_choose].sample.remote(self.args.batch_size)
-                transitions = ray.get(transitions_id)
+                # sample_choose = np.random.randint(self.args.pop_size + 1)
+                transitions = self.replay_buffer.sample.(self.args.batch_size)
+                # transitions = ray.get(transitions_id)
                 # transitions = results_ea[sample_choose][0].sample(self.args.batch_size)
                 batch = replay_memory.Transition(*zip(*transitions))
                 self.rl_agent.update_parameters(batch)

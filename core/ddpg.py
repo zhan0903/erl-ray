@@ -150,9 +150,10 @@ class LearnerThread(threading.Thread):
 
 
 class DDPG(object):
-    def __init__(self, args, actor):
+    def __init__(self, args):
         self.args = args
-        self.actor = actor
+        # self.actor = actor
+        self.actor = Actor(args, init=True)
         self.actor_target = Actor(args, init=True)
         self.actor_optim = Adam(self.actor.parameters(), lr=0.5e-4)
 
