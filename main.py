@@ -132,7 +132,7 @@ class Worker(object):
         # print(self.replay_buffer.sample(batch))
         return self.replay_buffer.sample(batch)
 
-    def add_experience(self, state, action, next_state, reward, done,replay_memroy):
+    def add_experience(self, state, action, next_state, reward, done, replay_memroy):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
         if self.args.is_cuda: reward = reward.cuda()
         if self.args.use_done_mask:
@@ -321,7 +321,7 @@ class Agent:
         test_timer = TimerStat()
         print("gen_frames:{}".format(self.gen_frames))
         print(len(replay_buffer))
-        print(len(ray.get(replay_buffer)))
+        print(len(ray.get(replay_buffer_id)))
 
         exit(0)
 
