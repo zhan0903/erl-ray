@@ -118,6 +118,7 @@ class Worker(object):
         return self.replay_buffer.sample(batch)
 
     def ddpg_learning(self):
+        print("in ddpg_learning, self.gen_frames,",self.gen_frames)
         if len(self.replay_buffer) > self.args.batch_size * 5:
             for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
                 # sample_choose = np.random.randint(self.args.pop_size + 1)
@@ -242,7 +243,6 @@ class Agent:
                             for key, worker in enumerate(self.workers)]
             results_ea = ray.get(evaluate_ids)
         print("evaluate_timer:{}".format(evaluate_timer.mean))
-
 
         ddpg_timer = TimerStat()
         with ddpg_timer:
