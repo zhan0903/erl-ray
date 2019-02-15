@@ -380,7 +380,7 @@ if __name__ == "__main__":
     print('Running', env_tag, ' State_dim:', parameters.state_dim, ' Action_dim:', parameters.action_dim)
 
     next_save = 100; time_start = time.time()
-    while agent.num_frames <= parameters.num_frames:
+    while True#agent.num_frames <= parameters.num_frames:
         best_train_fitness, erl_score, elite_index = agent.train()
         print('#Games:', agent.num_games, '#Frames:', agent.num_frames, ' Epoch_Max:', '%.2f'%best_train_fitness if best_train_fitness != None else None, ' Test_Score:','%.2f'%erl_score if erl_score != None else None, ' Avg:','%.2f'%tracker.all_tracker[0][1], 'ENV '+env_tag)
         print('RL Selection Rate: Elite/Selected/Discarded', '%.2f'%(agent.evolver.selection_stats['elite']/agent.evolver.selection_stats['total']),
