@@ -104,7 +104,7 @@ class Worker(object):
     def reset_gen_frames(self):
         self.gen_frames = 0
 
-    def get_gen_num(self):
+    def get_gen_frames(self):
         return self.gen_frames
 
     def copy_to_gpus(self):
@@ -228,10 +228,10 @@ class Agent:
             results_ea = ray.get(evaluate_ids)
         print("evaluate_timer:{}".format(evaluate_timer.mean))
 
-        get_gen_num_ids = [worker.get_gen_num.remote() for worker in self.workers]
+        get_gen_num_ids = [worker.get_gen_frames.remote() for worker in self.workers]
         print(ray.get(get_gen_num_ids))
 
-        [worker.reset_gen_num.remote() for worker in self.workers]
+        [worker.reset_gen_frames.remote() for worker in self.workers]
 
         ddpg_timer = TimerStat()
         with ddpg_timer:
@@ -243,10 +243,6 @@ class Agent:
         # time.sleep(10)
 
         exit(0)
-
-
-
-
 
         print("evaluate_timer:{}".format(evaluate_timer.mean))
 
