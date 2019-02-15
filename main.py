@@ -300,7 +300,7 @@ class Agent:
         champ_index = all_fitness.index(max(all_fitness))
         logger.debug("champ_index:{}".format(champ_index))
 
-        test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5, store_transition=False)
+        test_score_id = self.workers[0].evaluate.remote(self.pop[champ_index].state_dict(), 5,replay_buffer_id, store_transition=False)
         test_score = ray.get(test_score_id)[0]
         logger.debug("test_score:{0},champ_index:{1}".format(test_score, champ_index))
 
