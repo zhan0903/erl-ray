@@ -240,6 +240,7 @@ class Agent:
         print("ddpg_timer:{}".format(ddpg_timer.mean))
 
         print(len(results_ddpg))
+        time.sleep(10)
 
         exit(0)
 
