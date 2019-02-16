@@ -64,7 +64,7 @@ class Parameters:
         elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
         else: self.elite_fraction = 0.1
 
-        self.pop_size = 10
+        self.pop_size = 1
         self.crossover_prob = 0.0
         self.mutation_prob = 0.9
 
