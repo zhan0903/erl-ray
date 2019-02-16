@@ -105,8 +105,8 @@ class Worker(object):
     def reset_gen_frames(self):
         self.gen_frames = 0
 
-    def set_weight(self):
-        pass
+    def set_actor_weight(self, weight):
+        self.pop.load_state_dict(weight)
 
     def get_gen_frames(self):
         return self.gen_frames
