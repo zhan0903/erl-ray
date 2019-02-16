@@ -43,7 +43,7 @@ class Actor(nn.Module):
             self.w_out.weight.data.mul_(0.1)
             self.w_out.bias.data.mul_(0.1)
 
-        if args.is_cuda: self.cuda()
+        # if args.is_cuda: self.cuda()
 
     def forward(self, input):
         #Hidden Layer 1
