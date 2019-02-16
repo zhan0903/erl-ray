@@ -38,7 +38,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = True
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -131,7 +131,7 @@ class Worker(object):
                 self.rl_agent.update_parameters(batch)
 
             # self.gen_frames = 0
-            return 1 #self.rl_agent.actor.state_dict()
+            return self.rl_agent.actor.state_dict()
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -224,6 +224,8 @@ class Agent:
             target_param.data.copy_(param.data)
 
     def train(self):
+
+        ##### EA process
         evaluate_timer = TimerStat()
         with evaluate_timer:
             evaluate_ids = [worker.evaluate.remote()
@@ -235,7 +237,7 @@ class Agent:
         print(ray.get(get_gen_num_ids))
 
         # [worker.reset_gen_frames.remote() for worker in self.workers]
-
+        #### DDPG process
         ddpg_timer = TimerStat()
         with ddpg_timer:
             ddpg_ids = [worker.ddpg_learning.remote() for worker in self.workers]
