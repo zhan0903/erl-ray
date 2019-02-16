@@ -152,9 +152,7 @@ class Worker(object):
         # net.load_state_dict(model)
         for _ in range(self.args.num_evals):
             fitness += self._evaluate(is_action_noise=is_action_noise, store_transition=store_transition)
-        return fitness/self.args.num_evals, len(self.replay_buffer), \
-               self.num_frames, self.gen_frames, \
-               self.num_games
+        return fitness/self.args.num_evals
 
     def _evaluate(self, is_render=False, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -229,12 +227,13 @@ class Agent:
     def train(self):
 
         ##### EA process
-        evaluate_timer = TimerStat()
-        with evaluate_timer:
+        evaluate_timer_one = TimerStat()
+        with evaluate_timer_one:
             evaluate_ids = [worker.evaluate.remote()
                             for key, worker in enumerate(self.workers)]
-            results_ea = ray.get(evaluate_ids)
-        print("evaluate_timer:{}".format(evaluate_timer.mean))
+            results_ea_one = ray.get(evaluate_ids)
+        print("evaluate_timer:{}".format(evaluate_timer_one.mean))
+        print("evalutate_one,",results_ea_one)
 
         get_gen_num_ids = [worker.get_gen_frames.remote() for worker in self.workers]
         print(ray.get(get_gen_num_ids))
@@ -246,9 +245,26 @@ class Agent:
             ddpg_ids = [worker.ddpg_learning.remote() for worker in self.workers]
             results_ddpg = ray.get(ddpg_ids)
         print("ddpg_timer:{}".format(ddpg_timer.mean))
-
-        print(len(results_ddpg))
         # time.sleep(10)
+
+        evaluate_timer_two = TimerStat()
+        with evaluate_timer_two:
+            evaluate_ids = [worker.evaluate.remote()
+                            for key, worker in enumerate(self.workers)]
+            results_ea = ray.get(evaluate_ids)
+
+
+
+
+        evaluate_ids = [worker.evaluate.remote()
+                        for key, worker in enumerate(self.workers)]
+        results_ea = ray.get(evaluate_ids)
+
+        evaluate_ids = [worker.evaluate.remote()
+                        for key, worker in enumerate(self.workers)]
+        results_ea = ray.get(evaluate_ids)
+
+
 
         exit(0)
 
