@@ -88,6 +88,7 @@ class Worker(object):
         # self.replay_buffer = replay_buff
 
         self.pop = ddpg.Actor(args)
+        self.pop.eval()
 
         self.rl_agent = ddpg.DDPG(args)
         self.ounoise = ddpg.OUNoise(args.action_dim)
