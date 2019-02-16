@@ -38,7 +38,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = True
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -123,7 +123,7 @@ class Worker(object):
     def ddpg_learning(self):
         # print("in ddpg_learning, self.gen_frames,",self.gen_frames)
         if len(self.replay_buffer) > self.args.batch_size * 5:
-            # self.rl_agent.actor.cuda()
+            self.rl_agent.actor.cuda()
             for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
                 # sample_choose = np.random.randint(self.args.pop_size + 1)
                 transitions = self.sample(self.args.batch_size)
