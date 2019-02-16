@@ -123,7 +123,7 @@ class Worker(object):
     def ddpg_learning(self):
         # print("in ddpg_learning, self.gen_frames,",self.gen_frames)
         if len(self.replay_buffer) > self.args.batch_size * 5:
-            self.rl_agent.actor.cuda()
+            # self.rl_agent.actor.cuda()
             for _ in range(int(self.gen_frames * self.args.frac_frames_train)):
                 # sample_choose = np.random.randint(self.args.pop_size + 1)
                 transitions = self.sample(self.args.batch_size)
